@@ -80,7 +80,7 @@ jobs:
         run: node --check index.js
 
   sonar:
-    needs: estagio_lint
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
