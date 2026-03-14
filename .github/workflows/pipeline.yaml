@@ -26,8 +26,9 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: build 
+    needs: build
     steps:
+
       - name: Checkout do código
         uses: actions/checkout@v4
 
@@ -42,8 +43,38 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
+      - name: Instalar globals para o ESLint
+        run: npm install --no-save globals
+
+      - name: Criar configuração temporária do ESLint
+        run: |
+          cat > eslint.config.js <<'EOF'
+          const globals = require("globals");
+          module.exports = [
+            {
+              files: ["**/*.js"],
+              ignores: ["node_modules/**"],
+              languageOptions: {
+                ecmaVersion: 2021,
+                sourceType: "commonjs",
+                globals: {
+                  ...globals.node,
+                  ...globals.commonjs
+                }
+              },
+              rules: {
+                "no-unused-vars": "warn",
+                "no-undef": "error"
+              }
+            }
+          ];
+          EOF
+
       - name: Rodar lint
         run: npx eslint .
+
+      - name: Rodar build
+        run: node --check index.js
 
       - name: Rodar build
         run: node --check index.js
