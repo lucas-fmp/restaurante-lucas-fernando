@@ -96,8 +96,8 @@ jobs:
       - name: Criar sonar-project.properties
         run: |
           cat > sonar-project.properties <<'EOF'
-          sonar.projectKey=marmitatech-pro
-          sonar.projectName=MarmitaTech Prof
+          sonar.projectKey=restaurante-lucas-fernando
+          sonar.projectName=Restaurante Lucas Fernando
           sonar.sources=.
           sonar.inclusions=**/*.js
           sonar.sourceEncoding=UTF-8
