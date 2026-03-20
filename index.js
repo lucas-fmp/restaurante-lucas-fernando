@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const app = express();
@@ -35,19 +35,35 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.get('/', (req, res) => res.render('login'));
+app.get('/', (req, res) => {
+    const { tab, error, success } = req.query;
+    res.render('login', { tab: tab || 'login', error: error || null, success: success || null });
+});
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
-        if (rows.length === 0) return res.send('<h1>Login Inválido</h1><a href="/">Voltar</a>');
-        const user = rows[0];
-        const match = await bcrypt.compare(password, user.password);
-        if (match) res.redirect('/dashboard');
-        else res.send('<h1>Login Inválido</h1><a href="/">Voltar</a>');
+        if (rows.length === 0) return res.redirect('/?tab=login&error=Usuário+ou+senha+inválidos');
+        const match = await bcrypt.compare(password, rows[0].password);
+        if (match) return res.redirect('/dashboard');
+        return res.redirect('/?tab=login&error=Usuário+ou+senha+inválidos');
     } catch (err) {
-        res.status(500).send("Erro no banco.");
+        res.redirect('/?tab=login&error=Erro+interno.+Tente+novamente.');
+    }
+});
+
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.redirect('/?tab=register&error=Usuário+e+senha+são+obrigatórios');
+    try {
+        const [rows] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+        if (rows.length > 0) return res.redirect('/?tab=register&error=Usuário+já+existe');
+        const hash = await bcrypt.hash(password, 10);
+        await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hash]);
+        return res.redirect('/?tab=login&success=Conta+criada!+Agora+faça+o+login.');
+    } catch (err) {
+        res.redirect('/?tab=register&error=Erro+interno.+Tente+novamente.');
     }
 });
 

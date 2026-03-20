@@ -16,7 +16,4 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(20) DEFAULT 'Aberto'
 );
 
--- NOTE: Initial user passwords must be stored as bcrypt hashes.
--- To generate `init.sql` with hashed passwords run: `node scripts/hash-init-users.js`
-
 INSERT INTO items (name, category) VALUES ('Arroz Branco', 'Base'), ('Feijão Preto', 'Grão');

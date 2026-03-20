@@ -1,72 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Restaurante Lucas Fernando - Login</title>
+    <title>Restaurante Lucas Fernando</title>
     <style>
-        body { 
-            font-family: sans-serif; 
-            display: flex; 
-            justify-content: center; 
+        * { box-sizing: border-box; }
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: #f4f4f4; 
+            min-height: 100vh;
+            background: #f4f4f4;
+            margin: 0;
         }
-
         .container {
-            background: white; 
-            padding: 30px; 
-            border-radius: 10px; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             text-align: center;
-            width: 300px;
+            width: 340px;
         }
-
-        .logo {
-            width: 100px;
-            margin-bottom: 10px;
+        .logo { width: 80px; margin-bottom: 8px; }
+        h1 { margin: 4px 0 20px; font-size: 18px; color: #333; }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
         }
-
-        h1 {
-            margin: 5px 0 20px 0;
-            font-size: 20px;
-            color: #333;
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
         }
-
+        .tab-btn.active { color: #ff6600; border-bottom-color: #ff6600; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
         input {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
+            padding: 9px 10px;
+            margin-bottom: 12px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            font-size: 14px;
         }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #ff6600;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
+        .btn-login {
+            width: 100%; padding: 10px; border: none;
+            border-radius: 5px; background: #ff6600;
+            color: white; font-weight: bold; cursor: pointer; font-size: 14px;
         }
-
-        button:hover {
-            background-color: #e65c00;
+        .btn-login:hover { background: #e65c00; }
+        .btn-register {
+            width: 100%; padding: 10px; border: none;
+            border-radius: 5px; background: #007bff;
+            color: white; font-weight: bold; cursor: pointer; font-size: 14px;
+        }
+        .btn-register:hover { background: #0056b3; }
+        .msg-error {
+            background: #fde8e8; color: #c0392b;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px; padding: 8px 10px;
+            margin-bottom: 12px; font-size: 13px;
+        }
+        .msg-success {
+            background: #e8f8e8; color: #27ae60;
+            border: 1px solid #b2dfdb;
+            border-radius: 5px; padding: 8px 10px;
+            margin-bottom: 12px; font-size: 13px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img class="logo" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo Restaurante">
-
+        <img class="logo" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo">
         <h1>🍽️ Restaurante Lucas Fernando</h1>
 
-        <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="Usuário" required>
-            <input type="password" name="password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
-        </form>
+        <div class="tabs">
+            <button class="tab-btn <%= tab === 'login' ? 'active' : '' %>" id="btn-login" onclick="showTab('login')">Entrar</button>
+            <button class="tab-btn <%= tab === 'register' ? 'active' : '' %>" id="btn-register" onclick="showTab('register')">Criar conta</button>
+        </div>
+
+        <div class="tab-panel <%= tab === 'login' ? 'active' : '' %>" id="panel-login">
+            <% if (locals.tab === 'login' && locals.error) { %>
+                <div class="msg-error">⚠️ <%= error %></div>
+            <% } %>
+            <% if (locals.tab === 'login' && locals.success) { %>
+                <div class="msg-success">✅ <%= success %></div>
+            <% } %>
+            <form action="/login" method="POST">
+                <input type="text" name="username" placeholder="Usuário" required>
+                <input type="password" name="password" placeholder="Senha" required>
+                <button class="btn-login" type="submit">Entrar</button>
+            </form>
+        </div>
+
+        <div class="tab-panel <%= tab === 'register' ? 'active' : '' %>" id="panel-register">
+            <% if (locals.tab === 'register' && locals.error) { %>
+                <div class="msg-error">⚠️ <%= error %></div>
+            <% } %>
+            <form action="/register" method="POST">
+                <input type="text" name="username" placeholder="Usuário" required>
+                <input type="password" name="password" placeholder="Senha" required>
+                <button class="btn-register" type="submit">Criar conta</button>
+            </form>
+        </div>
     </div>
+
+    <script>
+        function showTab(tab) {
+            document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+            document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+            document.getElementById('btn-login').classList.toggle('active', tab === 'login');
+            document.getElementById('btn-register').classList.toggle('active', tab === 'register');
+        }
+        // Abre a aba correta com base no query param ?tab=
+        const params = new URLSearchParams(window.location.search);
+        showTab(params.get('tab') || 'login');
+    </script>
 </body>
 </html>
