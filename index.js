@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const path = require('path');
 
 const app = express();
@@ -14,6 +14,26 @@ const dbConfig = {
 };
 
 let pool;
+
+function hashPassword(password) {
+    return new Promise((resolve, reject) => {
+        const salt = crypto.randomBytes(16).toString('hex');
+        crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+            if (err) reject(err);
+            resolve(salt + ':' + derivedKey.toString('hex'));
+        });
+    });
+}
+
+function verifyPassword(password, hash) {
+    return new Promise((resolve, reject) => {
+        const [salt, key] = hash.split(':');
+        crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+            if (err) reject(err);
+            resolve(key === derivedKey.toString('hex'));
+        });
+    });
+}
 
 async function connectWithRetry() {
     console.log('🔍 [INFRA] Tentando conectar ao MySQL...');
@@ -45,7 +65,7 @@ app.post('/login', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
         if (rows.length === 0) return res.redirect('/?tab=login&error=Usuário+ou+senha+inválidos');
-        const match = await bcrypt.compare(password, rows[0].password);
+        const match = await verifyPassword(password, rows[0].password);
         if (match) return res.redirect('/dashboard');
         return res.redirect('/?tab=login&error=Usuário+ou+senha+inválidos');
     } catch (err) {
@@ -59,7 +79,7 @@ app.post('/register', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
         if (rows.length > 0) return res.redirect('/?tab=register&error=Usuário+já+existe');
-        const hash = await bcrypt.hash(password, 10);
+        const hash = await hashPassword(password);
         await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hash]);
         return res.redirect('/?tab=login&success=Conta+criada!+Agora+faça+o+login.');
     } catch (err) {
