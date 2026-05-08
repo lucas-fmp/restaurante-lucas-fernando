@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    category VARCHAR(50)
+    category VARCHAR(50),
+    price DECIMAL(10,2) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -16,4 +17,4 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(20) DEFAULT 'Aberto'
 );
 
-INSERT INTO items (name, category) VALUES ('Arroz Branco', 'Base'), ('Feijão Preto', 'Grão');
+INSERT INTO items (name, category, price) VALUES ('Arroz Branco', 'Base', 5.00), ('Feijão Preto', 'Grão', 3.50);

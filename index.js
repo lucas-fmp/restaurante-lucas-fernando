@@ -93,6 +93,26 @@ app.get('/dashboard', async (req, res) => {
     res.render('dashboard', { items, orders });
 });
 
+app.post('/add-item', async (req, res) => {
+    const { name, category, price } = req.body;
+
+    // Validation
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Nome é obrigatório e não pode estar vazio.' });
+    }
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+        return res.status(400).json({ error: 'Preço deve ser um número positivo.' });
+    }
+
+    try {
+        await pool.query('INSERT INTO items (name, category, price) VALUES (?, ?, ?)', [name.trim(), category, priceNum]);
+        res.status(201).json({ message: 'Item adicionado com sucesso.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro interno. Tente novamente.' });
+    }
+});
+
 connectWithRetry().then(() => {
     app.listen(3000, () => console.log('🚀 MARMITATECH PRO ONLINE NA PORTA 3000'));
 });
