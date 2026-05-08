@@ -148,6 +148,39 @@ app.post('/orders', async (req, res) => {
     }
 });
 
+app.get('/kanban', async (req, res) => {
+    try {
+        const [orders] = await pool.query(`
+            SELECT o.id, o.customer_name, o.status, GROUP_CONCAT(i.name SEPARATOR ', ') AS item_names
+            FROM orders o
+            LEFT JOIN order_items oi ON o.id = oi.order_id
+            LEFT JOIN items i ON oi.item_id = i.id
+            GROUP BY o.id
+            ORDER BY o.id DESC
+        `);
+        res.render('kanban', { orders });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao carregar painel Kanban.' });
+    }
+});
+
+app.put('/orders/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['Aberto', 'Cozinha', 'Entrega', 'Entregue'];
+    if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Status inválido.' });
+    }
+
+    try {
+        await pool.query('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
+        res.status(200).json({ message: 'Pedido atualizado com sucesso.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar pedido.' });
+    }
+});
+
 connectWithRetry().then(() => {
     app.listen(3000, () => console.log('🚀 MARMITATECH PRO ONLINE NA PORTA 3000'));
 });

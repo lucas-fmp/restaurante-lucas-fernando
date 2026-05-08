@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MarmitaTech - Painel Kanban</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+        }
+        .kanban-column {
+            flex: 0 0 320px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .column-header {
+            background: #ff6600;
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .column-content {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        .order-card {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        .order-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .order-card:active {
+            cursor: grabbing;
+        }
+        .order-customer {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .order-items {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .order-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-advance {
+            flex: 1;
+            padding: 6px 10px;
+            background: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-advance:hover {
+            background: #e65c00;
+        }
+        .btn-advance:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px 10px;
+            font-size: 14px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #ff6600;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="/dashboard" class="back-link">← Voltar ao Dashboard</a>
+    
+    <div class="container">
+        <h1>🍽️ Painel Kanban da Cozinha</h1>
+        
+        <div class="kanban-board">
+            <!-- Coluna: Aberto -->
+            <div class="kanban-column">
+                <div class="column-header">📋 Aberto</div>
+                <div class="column-content" data-status="Aberto">
+                    <% const abertos = orders.filter(o => o.status === 'Aberto'); %>
+                    <% if (abertos.length === 0) { %>
+                        <div class="empty-state">Nenhum pedido</div>
+                    <% } else { %>
+                        <% abertos.forEach(order => { %>
+                            <div class="order-card" data-order-id="<%= order.id %>">
+                                <div class="order-customer"><%= order.customer_name %></div>
+                                <div class="order-items"><%= order.item_names %></div>
+                                <div class="order-actions">
+                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Aberto')">→ Cozinha</button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Coluna: Cozinha -->
+            <div class="kanban-column">
+                <div class="column-header">👨‍🍳 Cozinha</div>
+                <div class="column-content" data-status="Cozinha">
+                    <% const cozinha = orders.filter(o => o.status === 'Cozinha'); %>
+                    <% if (cozinha.length === 0) { %>
+                        <div class="empty-state">Nenhum pedido</div>
+                    <% } else { %>
+                        <% cozinha.forEach(order => { %>
+                            <div class="order-card" data-order-id="<%= order.id %>">
+                                <div class="order-customer"><%= order.customer_name %></div>
+                                <div class="order-items"><%= order.item_names %></div>
+                                <div class="order-actions">
+                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Cozinha')">→ Entrega</button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Coluna: Entrega -->
+            <div class="kanban-column">
+                <div class="column-header">🚚 Entrega</div>
+                <div class="column-content" data-status="Entrega">
+                    <% const entrega = orders.filter(o => o.status === 'Entrega'); %>
+                    <% if (entrega.length === 0) { %>
+                        <div class="empty-state">Nenhum pedido</div>
+                    <% } else { %>
+                        <% entrega.forEach(order => { %>
+                            <div class="order-card" data-order-id="<%= order.id %>">
+                                <div class="order-customer"><%= order.customer_name %></div>
+                                <div class="order-items"><%= order.item_names %></div>
+                                <div class="order-actions">
+                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Entrega')">→ Entregue</button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Coluna: Entregue -->
+            <div class="kanban-column">
+                <div class="column-header">✅ Entregue</div>
+                <div class="column-content" data-status="Entregue">
+                    <% const entregue = orders.filter(o => o.status === 'Entregue'); %>
+                    <% if (entregue.length === 0) { %>
+                        <div class="empty-state">Nenhum pedido</div>
+                    <% } else { %>
+                        <% entregue.forEach(order => { %>
+                            <div class="order-card" data-order-id="<%= order.id %>">
+                                <div class="order-customer"><%= order.customer_name %></div>
+                                <div class="order-items"><%= order.item_names %></div>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function advanceStatus(orderId, currentStatus) {
+            const statusMap = {
+                'Aberto': 'Cozinha',
+                'Cozinha': 'Entrega',
+                'Entrega': 'Entregue'
+            };
+
+            const nextStatus = statusMap[currentStatus];
+            if (!nextStatus) return;
+
+            try {
+                const response = await fetch(`/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: nextStatus })
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Erro ao atualizar o pedido.');
+                }
+            } catch (error) {
+                alert('Erro ao atualizar o pedido.');
+            }
+        }
+    </script>
+</body>
+</html>

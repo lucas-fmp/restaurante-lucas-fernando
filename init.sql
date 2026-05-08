@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
-INSERT INTO items (name, category, price) VALUES ('Arroz Branco', 'Base', 5.00), ('Feijão Preto', 'Grão', 3.50);
+INSERT INTO items (name, category, price) VALUES ('Arroz Branco', 'Base', 5.00), ('Feijao Preto', 'Grao', 3.50);
 
 -- Seeder admin user: username 'admin', password 'admin123'
 INSERT INTO users (username, password) VALUES ('admin', 'c73ea2fa75377ffbc0ea2904110f0824:e3b99bc97a0e8300c52dea266bbed842db3c360375faefe1c3fa1199b86d8ede540c6edd3ba439b370d1b68b51884fa15c861c2abf21307e03d79c21a7041b80');
