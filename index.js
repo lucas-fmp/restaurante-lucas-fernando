@@ -89,7 +89,14 @@ app.post('/register', async (req, res) => {
 
 app.get('/dashboard', async (req, res) => {
     const [items] = await pool.query('SELECT * FROM items');
-    const [orders] = await pool.query('SELECT * FROM orders');
+    const [orders] = await pool.query(`
+        SELECT o.id, o.customer_name, o.status, GROUP_CONCAT(i.name SEPARATOR ', ') AS item_names
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN items i ON oi.item_id = i.id
+        GROUP BY o.id
+        ORDER BY o.id DESC
+    `);
     res.render('dashboard', { items, orders });
 });
 
@@ -110,6 +117,34 @@ app.post('/add-item', async (req, res) => {
         res.status(201).json({ message: 'Item adicionado com sucesso.' });
     } catch (err) {
         res.status(500).json({ error: 'Erro interno. Tente novamente.' });
+    }
+});
+
+app.post('/orders', async (req, res) => {
+    const { customer_name, item_ids } = req.body;
+
+    if (!customer_name || customer_name.trim() === '' || !item_ids || item_ids.length === 0) {
+        return res.status(400).json({ error: 'Nome do cliente e pelo menos um item são obrigatórios.' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [result] = await connection.query('INSERT INTO orders (customer_name, status) VALUES (?, ?)', [customer_name.trim(), 'Aberto']);
+        const orderId = result.insertId;
+
+        for (const itemId of item_ids) {
+            await connection.query('INSERT INTO order_items (order_id, item_id) VALUES (?, ?)', [orderId, itemId]);
+        }
+
+        await connection.commit();
+        res.status(201).json({ message: 'Pedido criado com sucesso.' });
+    } catch (err) {
+        await connection.rollback();
+        res.status(500).json({ error: 'Erro interno. Tente novamente.' });
+    } finally {
+        connection.release();
     }
 });
 
