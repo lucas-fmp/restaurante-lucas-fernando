@@ -2,127 +2,86 @@
 <html>
 <head>
     <title>Restaurante Lucas Fernando</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #f4f4f4;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 340px;
-        }
-        .logo { width: 80px; margin-bottom: 8px; }
-        h1 { margin: 4px 0 20px; font-size: 18px; color: #333; }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            color: #888;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-        }
-        .tab-btn.active { color: #ff6600; border-bottom-color: #ff6600; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        input {
-            width: 100%;
-            padding: 9px 10px;
-            margin-bottom: 12px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-        .btn-login {
-            width: 100%; padding: 10px; border: none;
-            border-radius: 5px; background: #ff6600;
-            color: white; font-weight: bold; cursor: pointer; font-size: 14px;
-        }
-        .btn-login:hover { background: #e65c00; }
-        .btn-register {
-            width: 100%; padding: 10px; border: none;
-            border-radius: 5px; background: #007bff;
-            color: white; font-weight: bold; cursor: pointer; font-size: 14px;
-        }
-        .btn-register:hover { background: #0056b3; }
-        .msg-error {
-            background: #fde8e8; color: #c0392b;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px; padding: 8px 10px;
-            margin-bottom: 12px; font-size: 13px;
-        }
-        .msg-success {
-            background: #e8f8e8; color: #27ae60;
-            border: 1px solid #b2dfdb;
-            border-radius: 5px; padding: 8px 10px;
-            margin-bottom: 12px; font-size: 13px;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <img class="logo" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo">
-        <h1>🍽️ Restaurante Lucas Fernando</h1>
+<body class="bg-gradient-to-br from-orange-50 to-amber-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <!-- Logo e Título -->
+            <div class="text-center mb-8">
+                <img class="w-20 h-20 mx-auto mb-4 drop-shadow" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">🍽️ MarmitaTech</h1>
+                <p class="text-gray-500">Gestão de Pedidos Inteligente</p>
+            </div>
 
-        <div class="tabs">
-            <button class="tab-btn <%= tab === 'login' ? 'active' : '' %>" id="btn-login" onclick="showTab('login')">Entrar</button>
-            <button class="tab-btn <%= tab === 'register' ? 'active' : '' %>" id="btn-register" onclick="showTab('register')">Criar conta</button>
-        </div>
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-8">
+                <button class="tab-btn flex-1 py-3 font-semibold text-center transition <%= tab === 'login' ? 'active text-orange-600 border-b-2 border-orange-600' : 'text-gray-500 hover:text-gray-700' %>" id="btn-login" onclick="showTab('login')">
+                    Entrar
+                </button>
+                <button class="tab-btn flex-1 py-3 font-semibold text-center transition <%= tab === 'register' ? 'active text-orange-600 border-b-2 border-orange-600' : 'text-gray-500 hover:text-gray-700' %>" id="btn-register" onclick="showTab('register')">
+                    Criar conta
+                </button>
+            </div>
 
-        <div class="tab-panel <%= tab === 'login' ? 'active' : '' %>" id="panel-login">
-            <% if (locals.tab === 'login' && locals.error) { %>
-                <div class="msg-error">⚠️ <%= error %></div>
-            <% } %>
-            <% if (locals.tab === 'login' && locals.success) { %>
-                <div class="msg-success">✅ <%= success %></div>
-            <% } %>
-            <form action="/login" method="POST">
-                <input type="text" name="username" placeholder="Usuário" required>
-                <input type="password" name="password" placeholder="Senha" required>
-                <button class="btn-login" type="submit">Entrar</button>
-            </form>
-        </div>
+            <!-- Login Panel -->
+            <div class="tab-panel <%= tab === 'login' ? 'active' : 'hidden' %>" id="panel-login">
+                <% if (locals.tab === 'login' && locals.error) { %>
+                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
+                        <span>⚠️</span> <%= error %>
+                    </div>
+                <% } %>
+                <% if (locals.tab === 'login' && locals.success) { %>
+                    <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-start gap-2">
+                        <span>✅</span> <%= success %>
+                    </div>
+                <% } %>
+                <form action="/login" method="POST" class="space-y-4">
+                    <input type="text" name="username" placeholder="Usuário" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                    <input type="password" name="password" placeholder="Senha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition transform hover:scale-105">
+                        Entrar
+                    </button>
+                </form>
+            </div>
 
-        <div class="tab-panel <%= tab === 'register' ? 'active' : '' %>" id="panel-register">
-            <% if (locals.tab === 'register' && locals.error) { %>
-                <div class="msg-error">⚠️ <%= error %></div>
-            <% } %>
-            <form action="/register" method="POST">
-                <input type="text" name="username" placeholder="Usuário" required>
-                <input type="password" name="password" placeholder="Senha" required>
-                <button class="btn-register" type="submit">Criar conta</button>
-            </form>
+            <!-- Register Panel -->
+            <div class="tab-panel <%= tab === 'register' ? 'active' : 'hidden' %>" id="panel-register">
+                <% if (locals.tab === 'register' && locals.error) { %>
+                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
+                        <span>⚠️</span> <%= error %>
+                    </div>
+                <% } %>
+                <form action="/register" method="POST" class="space-y-4">
+                    <input type="text" name="username" placeholder="Usuário" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <input type="password" name="password" placeholder="Senha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition transform hover:scale-105">
+                        Criar conta
+                    </button>
+                </form>
+            </div>
+
+            <!-- Demo Info -->
+            <div class="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+                <p class="font-semibold mb-2">👤 Demo</p>
+                <p>Usuário: <span class="font-mono bg-gray-100 px-2 py-1 rounded">admin</span></p>
+                <p>Senha: <span class="font-mono bg-gray-100 px-2 py-1 rounded">admin123</span></p>
+            </div>
         </div>
     </div>
 
     <script>
         function showTab(tab) {
-            document.getElementById('panel-login').classList.toggle('active', tab === 'login');
-            document.getElementById('panel-register').classList.toggle('active', tab === 'register');
-            document.getElementById('btn-login').classList.toggle('active', tab === 'login');
-            document.getElementById('btn-register').classList.toggle('active', tab === 'register');
+            const loginPanel = document.getElementById('panel-login');
+            const registerPanel = document.getElementById('panel-register');
+            loginPanel.classList.toggle('hidden', tab !== 'login');
+            registerPanel.classList.toggle('hidden', tab !== 'register');
         }
         // Abre a aba correta com base no query param ?tab=
         const params = new URLSearchParams(window.location.search);
         showTab(params.get('tab') || 'login');
     </script>
+</body>
+</html>
 </body>
 </html>

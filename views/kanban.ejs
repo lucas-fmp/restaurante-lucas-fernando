@@ -2,202 +2,142 @@
 <html>
 <head>
     <title>MarmitaTech - Painel Kanban</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: sans-serif;
-            background: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .kanban-board {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-        }
-        .kanban-column {
-            flex: 0 0 320px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-        .column-header {
-            background: #ff6600;
-            color: white;
-            padding: 15px;
-            border-radius: 8px 8px 0 0;
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        .column-content {
-            padding: 15px;
-            flex: 1;
-            overflow-y: auto;
-            max-height: 600px;
-        }
-        .order-card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 12px;
-            cursor: grab;
-            transition: all 0.2s;
-        }
-        .order-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-        .order-card:active {
-            cursor: grabbing;
-        }
-        .order-customer {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 6px;
-        }
-        .order-items {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
-        }
-        .order-actions {
-            display: flex;
-            gap: 5px;
-        }
-        .btn-advance {
-            flex: 1;
-            padding: 6px 10px;
-            background: #ff6600;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-advance:hover {
-            background: #e65c00;
-        }
-        .btn-advance:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 20px 10px;
-            font-size: 14px;
-        }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #ff6600;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <a href="/dashboard" class="back-link">← Voltar ao Dashboard</a>
-    
-    <div class="container">
-        <h1>🍽️ Painel Kanban da Cozinha</h1>
-        
-        <div class="kanban-board">
+<body class="bg-gray-50">
+    <!-- Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🍽️</span>
+                <h1 class="text-2xl font-bold text-gray-800">MarmitaTech - Kanban</h1>
+            </div>
+            <a href="/dashboard" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-2 rounded-lg transition shadow-md hover:shadow-lg">
+                ← Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="p-6">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Painel Kanban da Cozinha</h2>
+            <p class="text-gray-600">Gerencie o fluxo de produção dos pedidos</p>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="flex gap-6 overflow-x-auto pb-4">
             <!-- Coluna: Aberto -->
-            <div class="kanban-column">
-                <div class="column-header">📋 Aberto</div>
-                <div class="column-content" data-status="Aberto">
+            <div class="flex-shrink-0 w-80 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">📋 Aberto</h3>
+                </div>
+                <div class="p-4 min-h-96 bg-gray-50">
                     <% const abertos = orders.filter(o => o.status === 'Aberto'); %>
                     <% if (abertos.length === 0) { %>
-                        <div class="empty-state">Nenhum pedido</div>
+                        <div class="flex items-center justify-center h-full text-gray-400">
+                            <p class="text-sm">Nenhum pedido</p>
+                        </div>
                     <% } else { %>
-                        <% abertos.forEach(order => { %>
-                            <div class="order-card" data-order-id="<%= order.id %>">
-                                <div class="order-customer"><%= order.customer_name %></div>
-                                <div class="order-items"><%= order.item_names %></div>
-                                <div class="order-actions">
-                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Aberto')">→ Cozinha</button>
+                        <div class="space-y-3">
+                            <% abertos.forEach(order => { %>
+                                <div class="bg-white p-4 rounded-lg border-l-4 border-yellow-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
+                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
+                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
+                                        <%= order.item_names %>
+                                    </div>
+                                    <button onclick="advanceStatus(<%= order.id %>, 'Aberto')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
+                                        → Cozinha
+                                    </button>
                                 </div>
-                            </div>
-                        <% }) %>
+                            <% }) %>
+                        </div>
                     <% } %>
                 </div>
             </div>
 
             <!-- Coluna: Cozinha -->
-            <div class="kanban-column">
-                <div class="column-header">👨‍🍳 Cozinha</div>
-                <div class="column-content" data-status="Cozinha">
+            <div class="flex-shrink-0 w-80 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-400 to-blue-500 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">👨‍🍳 Cozinha</h3>
+                </div>
+                <div class="p-4 min-h-96 bg-gray-50">
                     <% const cozinha = orders.filter(o => o.status === 'Cozinha'); %>
                     <% if (cozinha.length === 0) { %>
-                        <div class="empty-state">Nenhum pedido</div>
+                        <div class="flex items-center justify-center h-full text-gray-400">
+                            <p class="text-sm">Nenhum pedido</p>
+                        </div>
                     <% } else { %>
-                        <% cozinha.forEach(order => { %>
-                            <div class="order-card" data-order-id="<%= order.id %>">
-                                <div class="order-customer"><%= order.customer_name %></div>
-                                <div class="order-items"><%= order.item_names %></div>
-                                <div class="order-actions">
-                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Cozinha')">→ Entrega</button>
+                        <div class="space-y-3">
+                            <% cozinha.forEach(order => { %>
+                                <div class="bg-white p-4 rounded-lg border-l-4 border-blue-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
+                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
+                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
+                                        <%= order.item_names %>
+                                    </div>
+                                    <button onclick="advanceStatus(<%= order.id %>, 'Cozinha')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
+                                        → Entrega
+                                    </button>
                                 </div>
-                            </div>
-                        <% }) %>
+                            <% }) %>
+                        </div>
                     <% } %>
                 </div>
             </div>
 
             <!-- Coluna: Entrega -->
-            <div class="kanban-column">
-                <div class="column-header">🚚 Entrega</div>
-                <div class="column-content" data-status="Entrega">
+            <div class="flex-shrink-0 w-80 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-400 to-purple-500 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">🚚 Entrega</h3>
+                </div>
+                <div class="p-4 min-h-96 bg-gray-50">
                     <% const entrega = orders.filter(o => o.status === 'Entrega'); %>
                     <% if (entrega.length === 0) { %>
-                        <div class="empty-state">Nenhum pedido</div>
+                        <div class="flex items-center justify-center h-full text-gray-400">
+                            <p class="text-sm">Nenhum pedido</p>
+                        </div>
                     <% } else { %>
-                        <% entrega.forEach(order => { %>
-                            <div class="order-card" data-order-id="<%= order.id %>">
-                                <div class="order-customer"><%= order.customer_name %></div>
-                                <div class="order-items"><%= order.item_names %></div>
-                                <div class="order-actions">
-                                    <button class="btn-advance" onclick="advanceStatus(<%= order.id %>, 'Entrega')">→ Entregue</button>
+                        <div class="space-y-3">
+                            <% entrega.forEach(order => { %>
+                                <div class="bg-white p-4 rounded-lg border-l-4 border-purple-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
+                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
+                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
+                                        <%= order.item_names %>
+                                    </div>
+                                    <button onclick="advanceStatus(<%= order.id %>, 'Entrega')" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
+                                        → Entregue
+                                    </button>
                                 </div>
-                            </div>
-                        <% }) %>
+                            <% }) %>
+                        </div>
                     <% } %>
                 </div>
             </div>
 
             <!-- Coluna: Entregue -->
-            <div class="kanban-column">
-                <div class="column-header">✅ Entregue</div>
-                <div class="column-content" data-status="Entregue">
+            <div class="flex-shrink-0 w-80 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gradient-to-r from-green-400 to-green-500 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white">✅ Entregue</h3>
+                </div>
+                <div class="p-4 min-h-96 bg-gray-50">
                     <% const entregue = orders.filter(o => o.status === 'Entregue'); %>
                     <% if (entregue.length === 0) { %>
-                        <div class="empty-state">Nenhum pedido</div>
+                        <div class="flex items-center justify-center h-full text-gray-400">
+                            <p class="text-sm">Nenhum pedido</p>
+                        </div>
                     <% } else { %>
-                        <% entregue.forEach(order => { %>
-                            <div class="order-card" data-order-id="<%= order.id %>">
-                                <div class="order-customer"><%= order.customer_name %></div>
-                                <div class="order-items"><%= order.item_names %></div>
-                            </div>
-                        <% }) %>
+                        <div class="space-y-3">
+                            <% entregue.forEach(order => { %>
+                                <div class="bg-white p-4 rounded-lg border-l-4 border-green-400 shadow-sm" data-order-id="<%= order.id %>">
+                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
+                                    <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                                        <%= order.item_names %>
+                                    </div>
+                                    <div class="mt-3 text-center text-xs text-green-600 font-semibold">
+                                        ✓ Pedido entregue
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
                     <% } %>
                 </div>
             </div>
@@ -225,7 +165,10 @@
                 });
 
                 if (response.ok) {
-                    location.reload();
+                    // Animação suave
+                    const card = document.querySelector(`[data-order-id="${orderId}"]`);
+                    card.style.opacity = '0.5';
+                    setTimeout(() => location.reload(), 300);
                 } else {
                     alert('Erro ao atualizar o pedido.');
                 }
