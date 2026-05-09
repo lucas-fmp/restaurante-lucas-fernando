@@ -60,6 +60,10 @@ app.get('/', (req, res) => {
     res.render('login', { tab: tab || 'login', error: error || null, success: success || null });
 });
 
+app.get('/logout', (req, res) => {
+    res.redirect('/?tab=login&success=Desconectado+com+sucesso!');
+});
+
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
