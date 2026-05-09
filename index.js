@@ -181,6 +181,40 @@ app.put('/orders/:id/status', async (req, res) => {
     }
 });
 
+app.get('/admin/export', async (req, res) => {
+    try {
+        const [orders] = await pool.query(`
+            SELECT o.id, o.customer_name, o.status, GROUP_CONCAT(i.name SEPARATOR ', ') AS item_names, 
+                   SUM(i.price) AS total_value, o.id AS created_at
+            FROM orders o
+            LEFT JOIN order_items oi ON o.id = oi.order_id
+            LEFT JOIN items i ON oi.item_id = i.id
+            GROUP BY o.id
+            ORDER BY o.id DESC
+        `);
+
+        // Gerar CSV
+        let csvContent = 'ID,Cliente,Itens,Status,Valor Total (R$)\n';
+        
+        orders.forEach(order => {
+            const id = order.id;
+            const customer = `"${order.customer_name.replace(/"/g, '""')}"`;
+            const items = `"${(order.item_names || '').replace(/"/g, '""')}"`;
+            const status = order.status;
+            const value = (order.total_value || 0).toFixed(2);
+            
+            csvContent += `${id},${customer},${items},${status},${value}\n`;
+        });
+
+        // Definir headers para download
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv"`);
+        res.send('\ufeff' + csvContent); // BOM para UTF-8 no Excel
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao gerar relatório.' });
+    }
+});
+
 connectWithRetry().then(() => {
     app.listen(3000, () => console.log('🚀 MARMITATECH PRO ONLINE NA PORTA 3000'));
 });
