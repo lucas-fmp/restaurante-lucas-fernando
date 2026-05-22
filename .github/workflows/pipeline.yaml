@@ -173,6 +173,15 @@ jobs:
           format: json
           output: trivy-report.json
 
+      - name: Criar sonar-project.properties dinâmico
+        run: |
+          echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
+          echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
+          echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
+          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
+          echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+
       - name: SonarQube Scan com relatório Trivy
         uses: sonarsource/sonarqube-scan-action@master
         env:
