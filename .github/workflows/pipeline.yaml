@@ -173,6 +173,44 @@ jobs:
           format: json
           output: trivy-report.json
 
+      - name: Converter relatório Trivy para Sonar External Issues
+        run: |
+          python3 - <<'PY'
+          import json
+          severity_map = {
+              "CRITICAL": "CRITICAL",
+              "HIGH": "MAJOR",
+              "MEDIUM": "MINOR",
+              "LOW": "INFO",
+              "UNKNOWN": "INFO"
+          }
+          with open('trivy-report.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          issues = []
+          for result in data.get('Results', []):
+              target = result.get('Target', 'Docker image')
+              for vuln in result.get('Vulnerabilities', []) or []:
+                  rule_id = vuln.get('VulnerabilityID') or vuln.get('Title', 'UNKNOWN')
+                  msg = vuln.get('Title', rule_id)
+                  if vuln.get('InstalledVersion'):
+                      msg += f" (installed: {vuln.get('InstalledVersion')})"
+                  msg += f" on {target}"
+                  issues.append({
+                      'engineId': 'trivy',
+                      'ruleId': rule_id,
+                      'severity': severity_map.get(vuln.get('Severity', 'UNKNOWN'), 'INFO'),
+                      'type': 'VULNERABILITY',
+                      'primaryLocation': {
+                          'message': msg,
+                          'filePath': 'Dockerfile',
+                          'textRange': {'startLine': 1}
+                      }
+                  })
+          with open('sonar-trivy-report.json', 'w', encoding='utf-8') as f:
+              json.dump({'issues': issues}, f, indent=2)
+          print('Generated sonar-trivy-report.json with', len(issues), 'issues')
+          PY
+
       - name: Criar sonar-project.properties dinâmico
         run: |
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
@@ -190,4 +228,4 @@ jobs:
         with:
           args: >
             -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.externalIssuesReportPaths=trivy-report.json
+            -Dsonar.externalIssuesReportPaths=sonar-trivy-report.json
