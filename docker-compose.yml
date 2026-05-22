@@ -18,16 +18,25 @@ services:
       retries: 10
 
   app:
-    build: .
+    build:
+      context: .
+      target: runtime
+    image: lucasfmp/restaurante-lucas-fernando:staging
     container_name: marmitatech-app
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     environment:
       DB_HOST: db
       DB_USER: user
       DB_PASS: password
       DB_NAME: marmitadb
-      DB_PORT: 3307
+      DB_PORT: 3306
     depends_on:
       db:
         condition: service_healthy
