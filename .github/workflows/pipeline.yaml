@@ -229,3 +229,43 @@ jobs:
           args: >
             -Dsonar.branch.name=${{ github.ref_name }}
             -Dsonar.externalIssuesReportPaths=sonar-trivy-report.json
+
+  job_deploy_staging:
+    needs: job_trivy_sonar
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Preparar arquivo Compose com o identificador do aluno
+        run: |
+          # Copia o compose original para o formato fixo
+          cp docker-compose.yml docker-compose-8089.yml
+
+      - name: Copiar Compose para a EC2 (via SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "docker-compose-8089.yml"
+          target: "/home/${{ secrets.EC2_USER }}/deploy_8089"
+
+      - name: Executar o Deploy na EC2 (via SSH)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            # Entra na pasta onde o arquivo foi copiado
+            cd /home/${{ secrets.EC2_USER }}/deploy_8089
+
+            # Garante que não usará cache da imagem antiga
+            docker compose -f docker-compose-8089.yml pull
+            
+            # Recria o container em background com a nova imagem
+            docker compose -f docker-compose-8089.yml up -d
+
+            echo "✅ Deploy do aluno 8089 finalizado com sucesso na EC2!"
