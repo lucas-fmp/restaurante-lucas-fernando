@@ -9,6 +9,8 @@ services:
       DB_USER: root
       DB_PASS: password
       DB_NAME: lfdb
+    networks:
+      - rede_alunos
 
 networks:
   rede_alunos:
