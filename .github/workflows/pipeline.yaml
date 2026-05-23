@@ -263,9 +263,9 @@ jobs:
             cd /home/${{ secrets.EC2_USER }}/deploy_8089
 
             # Garante que não usará cache da imagem antiga
-            docker compose -f docker-compose-8089.yml pull
-            
+            sudo docker compose -f docker-compose-8089.yml pull
+
             # Recria o container em background com a nova imagem
-            docker compose -f docker-compose-8089.yml up -d
+            sudo docker compose -f docker-compose-8089.yml up -d
 
             echo "✅ Deploy do aluno 8089 finalizado com sucesso na EC2!"
