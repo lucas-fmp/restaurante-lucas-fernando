@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm install --omit=dev
 
 # ESTÁGIO 2: Imagem Final (Enxuta e segura)
-FROM node:22-alpine
+FROM node:22-alpine AS runtime
 
 ENV NODE_ENV=production
 USER node
