@@ -1,0 +1,49 @@
+<div class="space-y-6">
+    <div>
+        <h1 class="text-3xl font-bold mb-2">Perfil</h1>
+        <p class="text-muted-foreground">Atualize suas informações pessoais</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="rounded-2xl border border-border/50 bg-card shadow p-6 col-span-1 flex flex-col items-center justify-center text-center">
+            <div class="w-24 h-24 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl font-bold mb-4">
+                <%= user ? (user.full_name ? user.full_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()) : 'U' %>
+            </div>
+            <h2 class="text-xl font-bold"><%= user ? (user.full_name || user.username) : 'Usuário' %></h2>
+            <p class="text-sm text-muted-foreground mb-4"><%= user ? user.role : 'Admin' %></p>
+            <button class="text-sm font-medium text-primary hover:underline">Alterar Avatar</button>
+        </div>
+
+        <div class="rounded-2xl border border-border/50 bg-card shadow p-6 col-span-2">
+            <h2 class="text-xl font-bold mb-4">Dados Cadastrais</h2>
+            <form action="/api/profile" method="POST" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Nome Completo</label>
+                        <input type="text" name="full_name" value="<%= user ? user.full_name : '' %>" class="w-full h-10 rounded-xl border border-input bg-input-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Nome de Usuário</label>
+                        <input type="text" value="<%= user ? user.username : '' %>" disabled class="w-full h-10 rounded-xl border border-input bg-muted px-3 text-sm opacity-50 cursor-not-allowed">
+                    </div>
+                </div>
+
+                <hr class="border-border my-6">
+
+                <h3 class="font-medium mb-2">Alterar Senha</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Nova Senha</label>
+                        <input type="password" name="password" placeholder="Deixe em branco para manter" class="w-full h-10 rounded-xl border border-input bg-input-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="bg-primary text-primary-foreground font-medium rounded-xl h-10 px-6 hover:bg-primary/90">
+                        Salvar Perfil
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

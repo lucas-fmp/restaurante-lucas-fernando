@@ -1,181 +1,109 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>MarmitaTech - Painel Kanban</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <%- include('header') %>
-
-    <script>
-        // Adicionar links específicos do Kanban
-        document.getElementById('nav-links').innerHTML = `
-            <a href="/dashboard" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition shadow-md hover:shadow-lg">
-                ← Dashboard
-            </a>
-        `;
-    </script>
-
-    <div class="bg-gray-50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Painel Kanban da Cozinha</h2>
-                <p class="text-gray-600">Gerencie o fluxo de produção dos pedidos</p>
-            </div>
-
-            <!-- Kanban Board -->
-            <div class="flex gap-8 overflow-x-auto pb-6">
-            <!-- Coluna: Aberto -->
-            <div class="flex-shrink-0 w-96 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white">📋 Aberto</h3>
-                </div>
-                <div class="p-4 min-h-96 bg-gray-50">
-                    <% const abertos = orders.filter(o => o.status === 'Aberto'); %>
-                    <% if (abertos.length === 0) { %>
-                        <div class="flex items-center justify-center h-full text-gray-400">
-                            <p class="text-sm">Nenhum pedido</p>
-                        </div>
-                    <% } else { %>
-                        <div class="space-y-3">
-                            <% abertos.forEach(order => { %>
-                                <div class="bg-white p-4 rounded-lg border-l-4 border-yellow-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
-                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
-                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
-                                        <%= order.item_names %>
-                                    </div>
-                                    <button onclick="advanceStatus(<%= order.id %>, 'Aberto')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
-                                        → Cozinha
-                                    </button>
-                                </div>
-                            <% }) %>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
-
-            <!-- Coluna: Cozinha -->
-            <div class="flex-shrink-0 w-96 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-400 to-blue-500 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white">👨‍🍳 Cozinha</h3>
-                </div>
-                <div class="p-4 min-h-96 bg-gray-50">
-                    <% const cozinha = orders.filter(o => o.status === 'Cozinha'); %>
-                    <% if (cozinha.length === 0) { %>
-                        <div class="flex items-center justify-center h-full text-gray-400">
-                            <p class="text-sm">Nenhum pedido</p>
-                        </div>
-                    <% } else { %>
-                        <div class="space-y-3">
-                            <% cozinha.forEach(order => { %>
-                                <div class="bg-white p-4 rounded-lg border-l-4 border-blue-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
-                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
-                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
-                                        <%= order.item_names %>
-                                    </div>
-                                    <button onclick="advanceStatus(<%= order.id %>, 'Cozinha')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
-                                        → Entrega
-                                    </button>
-                                </div>
-                            <% }) %>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
-
-            <!-- Coluna: Entrega -->
-            <div class="flex-shrink-0 w-96 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-purple-400 to-purple-500 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white">🚚 Entrega</h3>
-                </div>
-                <div class="p-4 min-h-96 bg-gray-50">
-                    <% const entrega = orders.filter(o => o.status === 'Entrega'); %>
-                    <% if (entrega.length === 0) { %>
-                        <div class="flex items-center justify-center h-full text-gray-400">
-                            <p class="text-sm">Nenhum pedido</p>
-                        </div>
-                    <% } else { %>
-                        <div class="space-y-3">
-                            <% entrega.forEach(order => { %>
-                                <div class="bg-white p-4 rounded-lg border-l-4 border-purple-400 shadow-sm hover:shadow-md transition" data-order-id="<%= order.id %>">
-                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
-                                    <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded">
-                                        <%= order.item_names %>
-                                    </div>
-                                    <button onclick="advanceStatus(<%= order.id %>, 'Entrega')" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-sm py-2 rounded transition transform hover:scale-105">
-                                        → Entregue
-                                    </button>
-                                </div>
-                            <% }) %>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
-
-            <!-- Coluna: Entregue -->
-            <div class="flex-shrink-0 w-96 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-green-400 to-green-500 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white">✅ Entregue</h3>
-                </div>
-                <div class="p-4 min-h-96 bg-gray-50">
-                    <% const entregue = orders.filter(o => o.status === 'Entregue'); %>
-                    <% if (entregue.length === 0) { %>
-                        <div class="flex items-center justify-center h-full text-gray-400">
-                            <p class="text-sm">Nenhum pedido</p>
-                        </div>
-                    <% } else { %>
-                        <div class="space-y-3">
-                            <% entregue.forEach(order => { %>
-                                <div class="bg-white p-4 rounded-lg border-l-4 border-green-400 shadow-sm" data-order-id="<%= order.id %>">
-                                    <div class="font-bold text-gray-800 mb-2"><%= order.customer_name %></div>
-                                    <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded">
-                                        <%= order.item_names %>
-                                    </div>
-                                    <div class="mt-3 text-center text-xs text-green-600 font-semibold">
-                                        ✓ Pedido entregue
-                                    </div>
-                                </div>
-                            <% }) %>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Cozinha</h1>
+            <p class="text-muted-foreground">Gerencie os pedidos em tempo real via Kanban</p>
         </div>
+        <button onclick="window.location.reload()" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 rounded-xl gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar
+        </button>
     </div>
 
-    <script>
-        async function advanceStatus(orderId, currentStatus) {
-            const statusMap = {
-                'Aberto': 'Cozinha',
-                'Cozinha': 'Entrega',
-                'Entrega': 'Entregue'
-            };
+    <% const columns = [
+        { id: 'Aberto', label: 'Novo Pedido', color: 'bg-blue-500/10 text-blue-500 ring-blue-500' },
+        { id: 'Cozinha', label: 'Em Preparo', color: 'bg-accent/10 text-accent ring-accent' },
+        { id: 'Entrega', label: 'Pronto / Entrega', color: 'bg-primary/10 text-primary ring-primary' },
+        { id: 'Entregue', label: 'Finalizado', color: 'bg-success/10 text-success ring-success' }
+    ]; %>
 
-            const nextStatus = statusMap[currentStatus];
-            if (!nextStatus) return;
+    <div class="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)]">
+        <% columns.forEach(col => { %>
+            <div class="flex-1 min-w-[320px] max-w-[350px] bg-card border border-border rounded-2xl flex flex-col kanban-column" data-status="<%= col.id %>">
+                <div class="p-4 border-b border-border flex items-center justify-between">
+                    <h3 class="font-bold text-sm"><%= col.label %></h3>
+                    <span class="text-xs font-semibold px-2 py-1 rounded-md <%= col.color.split(' ')[0] %> <%= col.color.split(' ')[1] %>">
+                        <%= orders.filter(o => o.status === col.id).length %>
+                    </span>
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto space-y-4 kanban-dropzone">
+                    <% orders.filter(o => o.status === col.id).forEach(order => { %>
+                        <div class="bg-background border border-border/50 rounded-xl p-4 shadow-sm cursor-move hover:border-primary/50 transition kanban-card" draggable="true" data-id="<%= order.id %>">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="font-bold">#<%= order.id %></div>
+                                <div class="text-xs text-muted-foreground flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3"></i> <%= new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                                    <%= order.customer_name.charAt(0).toUpperCase() %>
+                                </div>
+                                <div class="text-sm font-medium truncate"><%= order.customer_name %></div>
+                            </div>
+                            <div class="text-xs text-muted-foreground">
+                                <% if(order.item_names) { %>
+                                    <% order.item_names.split(', ').forEach(item => { %>
+                                        <div class="truncate">• <%= item %></div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }) %>
+                    <% if(orders.filter(o => o.status === col.id).length === 0) { %>
+                        <div class="text-center py-8 text-muted-foreground opacity-50">
+                            <p class="text-sm">Vazio</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+</div>
 
-            try {
-                const response = await fetch(`/orders/${orderId}/status`, {
+<script>
+    const cards = document.querySelectorAll('.kanban-card');
+    const dropzones = document.querySelectorAll('.kanban-column');
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', () => {
+            card.classList.add('opacity-50');
+            card.setAttribute('data-dragging', 'true');
+        });
+        card.addEventListener('dragend', () => {
+            card.classList.remove('opacity-50');
+            card.removeAttribute('data-dragging');
+        });
+    });
+
+    dropzones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('bg-muted/50');
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('bg-muted/50');
+        });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('bg-muted/50');
+            const card = document.querySelector('[data-dragging="true"]');
+            if (card) {
+                zone.querySelector('.kanban-dropzone').appendChild(card);
+                const orderId = card.getAttribute('data-id');
+                const newStatus = zone.getAttribute('data-status');
+                
+                fetch(`/api/orders/${orderId}/status`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: nextStatus })
-                });
-
-                if (response.ok) {
-                    // Animação suave
-                    const card = document.querySelector(`[data-order-id="${orderId}"]`);
-                    card.style.opacity = '0.5';
-                    setTimeout(() => location.reload(), 300);
-                } else {
-                    alert('Erro ao atualizar o pedido.');
-                }
-            } catch (error) {
-                alert('Erro ao atualizar o pedido.');
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(res => {
+                    if(res.ok) {
+                        showToast(`Pedido #${orderId} atualizado para ${newStatus}`, 'success');
+                    } else {
+                        showToast('Erro ao atualizar pedido', 'error');
+                    }
+                }).catch(() => showToast('Erro de conexão', 'error'));
             }
-        }
-    </script>
-</body>
-</html>
+        });
+    });
+</script>

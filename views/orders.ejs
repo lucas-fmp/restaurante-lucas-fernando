@@ -1,0 +1,80 @@
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Pedidos</h1>
+            <p class="text-muted-foreground">Gerencie todos os pedidos do restaurante</p>
+        </div>
+        <a href="/orders/new" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-xl gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Novo Pedido
+        </a>
+    </div>
+
+    <!-- Filtros Mock -->
+    <div class="rounded-2xl border border-border/50 bg-card p-4 shadow flex flex-col lg:flex-row gap-4">
+        <div class="relative flex-1">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"></i>
+            <input type="text" placeholder="Buscar por cliente ou pedido..." class="pl-9 h-10 w-full rounded-xl border border-input bg-input-background focus:ring-2 focus:ring-ring focus:outline-none">
+        </div>
+        <button class="bg-secondary text-secondary-foreground h-10 px-4 rounded-xl flex items-center gap-2 hover:bg-secondary/80">
+            <i data-lucide="filter" class="w-4 h-4"></i> Filtrar Status
+        </button>
+    </div>
+
+    <div class="rounded-2xl border border-border/50 overflow-hidden bg-card shadow w-full overflow-x-auto">
+        <div class="p-6 border-b border-border">
+            <h3 class="font-semibold leading-none tracking-tight">Lista de Pedidos</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                    <tr>
+                        <th class="px-6 py-3 font-medium">Pedido</th>
+                        <th class="px-6 py-3 font-medium">Cliente</th>
+                        <th class="px-6 py-3 font-medium">Itens</th>
+                        <th class="px-6 py-3 font-medium">Total</th>
+                        <th class="px-6 py-3 font-medium">Status</th>
+                        <th class="px-6 py-3 font-medium">Data/Hora</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    <% orders.forEach(order => { %>
+                        <tr class="hover:bg-muted/50 transition-colors">
+                            <td class="px-6 py-4 font-medium">#<%= order.id %></td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                                        <%= order.customer_name.charAt(0).toUpperCase() %>
+                                    </div>
+                                    <span><%= order.customer_name %></span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 truncate max-w-[200px]" title="<%= order.item_names %>">
+                                <%= order.items_count %> itens
+                            </td>
+                            <td class="px-6 py-4 font-bold text-primary">
+                                R$ <%= parseFloat(order.total_value).toFixed(2) %>
+                            </td>
+                            <td class="px-6 py-4">
+                                <% const statusColors = { 'Aberto': 'bg-blue-500 text-white', 'Cozinha': 'bg-accent text-white', 'Entrega': 'bg-primary text-white', 'Entregue': 'bg-success text-white' }; %>
+                                <span class="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold <%= statusColors[order.status] || 'bg-secondary text-secondary-foreground' %>">
+                                    <%= order.status %>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm">
+                                    <div><%= new Date(order.created_at).toLocaleDateString() %></div>
+                                    <div class="text-muted-foreground"><%= new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></div>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                    <% if(orders.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">Nenhum pedido encontrado.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
