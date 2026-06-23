@@ -49,7 +49,35 @@ CREATE TABLE order_items (
 INSERT INTO items (name, category, price) VALUES 
 ('Arroz Branco', 'Base', 5.00), 
 ('Feijão Preto', 'Grão', 3.50),
-('Bife Acebolado', 'Proteína', 15.00);
+('Bife Acebolado', 'Proteína', 15.00),
+('Frango Assado', 'Proteína', 12.00),
+('Salada Mista', 'Salada', 8.00),
+('Batata Frita', 'Acompanhamento', 10.00),
+('Refrigerante Lata', 'Bebida', 6.00),
+('Suco Natural', 'Bebida', 8.00),
+('Pudim', 'Sobremesa', 7.00);
+
+-- Insert dummy orders for the dashboard
+INSERT INTO orders (customer_name, status, total_value, created_at) VALUES 
+('Maria Silva', 'Aberto', 28.00, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+('João Souza', 'Cozinha', 35.50, DATE_SUB(NOW(), INTERVAL 3 HOUR)),
+('Ana Paula', 'Entrega', 42.00, DATE_SUB(NOW(), INTERVAL 4 HOUR)),
+('Carlos Lima', 'Entregue', 50.00, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+('Beatriz Costa', 'Entregue', 25.00, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+('Fernando Alves', 'Entregue', 45.00, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+('Juliana Mendes', 'Aberto', 18.00, DATE_SUB(NOW(), INTERVAL 10 MINUTE)),
+('Ricardo Gomes', 'Cozinha', 22.00, DATE_SUB(NOW(), INTERVAL 30 MINUTE));
+
+-- Insert order items
+INSERT INTO order_items (order_id, item_id, quantity) VALUES 
+(1, 3, 1), (1, 1, 1), (1, 8, 1),
+(2, 4, 1), (2, 2, 1), (2, 5, 1), (2, 7, 2),
+(3, 3, 2), (3, 6, 1),
+(4, 4, 2), (4, 1, 2), (4, 9, 2),
+(5, 5, 2), (5, 8, 1),
+(6, 3, 1), (6, 4, 1), (6, 7, 3),
+(7, 6, 1), (7, 8, 1),
+(8, 4, 1), (8, 6, 1);
 
 -- Seeder admin user: username 'admin', password 'admin123'
 INSERT INTO users (username, password, full_name, email) VALUES 
