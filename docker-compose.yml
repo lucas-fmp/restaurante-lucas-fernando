@@ -1,7 +1,10 @@
 services:
   app:
-    image: lucasfmp/restaurante-lucas-fernando:staging
-    container_name: restaurante-lucas-fernando
+    build:
+      context: .
+      target: runtime
+    image: lucasfmp/restaurante-lucas-fernando:latest
+    container_name: marmitatech-app
     ports:
       - "8089:3000"
     environment:

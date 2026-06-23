@@ -1,0 +1,24 @@
+# docker-compose.staging.yml
+# Ambiente: Homologação (staging)
+# Usado como referência do que a pipeline gera e envia para a EC2.
+# NÃO sobe MySQL próprio — usa o container compartilhado mysql-infra da EC2.
+# Para subir localmente com a imagem publicada: docker compose -f docker-compose.staging.yml up
+
+services:
+  app:
+    image: lucasfmp/restaurante-lucas-fernando:staging
+    container_name: restaurante-lucas-8089
+    ports:
+      - "8089:3000"
+    environment:
+      DB_HOST: mysql-infra
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: password
+      DB_NAME: restaurante_lucas
+    networks:
+      - rede_alunos
+
+networks:
+  rede_alunos:
+    external: true
