@@ -119,9 +119,11 @@ jobs:
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
           echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
           echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
-          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.sources=index.js" >> sonar-project.properties
+          echo "sonar.tests=index.test.js" >> sonar-project.properties
           echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
           echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.cpd.exclusions=**/*.test.js" >> sonar-project.properties
           echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
 
       - name: Exibir configuração do Sonar
@@ -249,9 +251,11 @@ jobs:
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
           echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
           echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
-          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.sources=index.js" >> sonar-project.properties
+          echo "sonar.tests=index.test.js" >> sonar-project.properties
           echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
           echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.cpd.exclusions=**/*.test.js" >> sonar-project.properties
           echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
 
       - name: SonarQube Scan com relatório Trivy
@@ -444,9 +448,11 @@ jobs:
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
           echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
           echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
-          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.sources=index.js" >> sonar-project.properties
+          echo "sonar.tests=index.test.js" >> sonar-project.properties
           echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
           echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.cpd.exclusions=**/*.test.js" >> sonar-project.properties
           echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
 
       - name: SonarQube Scan com relatório Trivy
