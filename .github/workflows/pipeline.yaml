@@ -271,12 +271,6 @@ jobs:
             # Entra na pasta onde os arquivos foram copiados
             cd /home/${{ secrets.EC2_USER }}/deploy_8089
 
-            # Executa o init.sql no container MySQL compartilhado
-            echo "⏳ Executando init.sql no container mysql-infra..."
-            sudo docker exec -i mysql-infra \
-              mysql -u root -ppassword < init.sql
-            echo "✅ init.sql executado com sucesso!"
-
             # Garante que não usará cache da imagem antiga
             sudo docker compose -f docker-compose-8089.yml pull
 
@@ -421,12 +415,6 @@ jobs:
           script: |
             # Entra na pasta onde os arquivos foram copiados
             cd /home/${{ secrets.EC2_USER }}/deploy_8089
-
-            # Executa o init.sql no container MySQL compartilhado
-            echo "⏳ Executando init.sql no container mysql-infra..."
-            sudo docker exec -i mysql-infra \
-              mysql -u root -ppassword < init.sql
-            echo "✅ init.sql executado com sucesso!"
 
             # Garante que não usará cache da imagem antiga
             sudo docker compose -f docker-compose-8089.yml pull
