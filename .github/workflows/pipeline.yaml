@@ -191,60 +191,14 @@ jobs:
       - name: Rodar testes com cobertura
         run: npm run test:coverage
 
-      - name: Login no Docker Hub para pull
-        uses: docker/login-action@v4
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Pull da imagem Docker
-        run: docker pull $IMAGE_NAME:staging
-
       - name: Scan de segurança com Trivy
-        uses: aquasecurity/trivy-action@v0.13.0
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:staging
-          format: json
-          output: trivy-report.json
-
-      - name: Converter relatório Trivy para Sonar External Issues
-        run: |
-          python3 - <<'PY'
-          import json
-          severity_map = {
-              "CRITICAL": "CRITICAL",
-              "HIGH": "MAJOR",
-              "MEDIUM": "MINOR",
-              "LOW": "INFO",
-              "UNKNOWN": "INFO"
-          }
-          with open('trivy-report.json', 'r', encoding='utf-8') as f:
-              data = json.load(f)
-          issues = []
-          for result in data.get('Results', []):
-              target = result.get('Target', 'Docker image')
-              for vuln in result.get('Vulnerabilities', []) or []:
-                  rule_id = vuln.get('VulnerabilityID') or vuln.get('Title', 'UNKNOWN')
-                  msg = vuln.get('Title', rule_id)
-                  if vuln.get('InstalledVersion'):
-                      msg += f" (installed: {vuln.get('InstalledVersion')})"
-                  msg += f" on {target}"
-                  issues.append({
-                      'engineId': 'trivy',
-                      'ruleId': rule_id,
-                      'severity': severity_map.get(vuln.get('Severity', 'UNKNOWN'), 'INFO'),
-                      'type': 'VULNERABILITY',
-                      'primaryLocation': {
-                          'message': msg,
-                          'filePath': 'Dockerfile',
-                          'textRange': {'startLine': 1}
-                      }
-                  })
-          with open('sonar-trivy-report.json', 'w', encoding='utf-8') as f:
-              json.dump({'issues': issues}, f, indent=2)
-          print('Generated sonar-trivy-report.json with', len(issues), 'issues')
-          PY
+          image-ref: '${{ env.IMAGE_NAME }}:staging'
+          format: 'sarif'
+          output: 'trivy-report.sarif'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
 
       - name: Criar sonar-project.properties dinâmico
         run: |
@@ -266,7 +220,7 @@ jobs:
         with:
           args: >
             -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.externalIssuesReportPaths=sonar-trivy-report.json
+            -Dsonar.sarifReportPaths=trivy-report.sarif
 
   job_deploy_staging:
     needs: job_trivy_sonar
@@ -388,60 +342,14 @@ jobs:
       - name: Rodar testes com cobertura
         run: npm run test:coverage
 
-      - name: Login no Docker Hub para pull
-        uses: docker/login-action@v4
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Pull da imagem Docker
-        run: docker pull $IMAGE_NAME:latest
-
       - name: Scan de segurança com Trivy
-        uses: aquasecurity/trivy-action@v0.13.0
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:latest
-          format: json
-          output: trivy-report.json
-
-      - name: Converter relatório Trivy para Sonar External Issues
-        run: |
-          python3 - <<'PY'
-          import json
-          severity_map = {
-              "CRITICAL": "CRITICAL",
-              "HIGH": "MAJOR",
-              "MEDIUM": "MINOR",
-              "LOW": "INFO",
-              "UNKNOWN": "INFO"
-          }
-          with open('trivy-report.json', 'r', encoding='utf-8') as f:
-              data = json.load(f)
-          issues = []
-          for result in data.get('Results', []):
-              target = result.get('Target', 'Docker image')
-              for vuln in result.get('Vulnerabilities', []) or []:
-                  rule_id = vuln.get('VulnerabilityID') or vuln.get('Title', 'UNKNOWN')
-                  msg = vuln.get('Title', rule_id)
-                  if vuln.get('InstalledVersion'):
-                      msg += f" (installed: {vuln.get('InstalledVersion')})"
-                  msg += f" on {target}"
-                  issues.append({
-                      'engineId': 'trivy',
-                      'ruleId': rule_id,
-                      'severity': severity_map.get(vuln.get('Severity', 'UNKNOWN'), 'INFO'),
-                      'type': 'VULNERABILITY',
-                      'primaryLocation': {
-                          'message': msg,
-                          'filePath': 'Dockerfile',
-                          'textRange': {'startLine': 1}
-                      }
-                  })
-          with open('sonar-trivy-report.json', 'w', encoding='utf-8') as f:
-              json.dump({'issues': issues}, f, indent=2)
-          print('Generated sonar-trivy-report.json with', len(issues), 'issues')
-          PY
+          image-ref: '${{ env.IMAGE_NAME }}:latest'
+          format: 'sarif'
+          output: 'trivy-report.sarif'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
 
       - name: Criar sonar-project.properties dinâmico
         run: |
@@ -463,7 +371,7 @@ jobs:
         with:
           args: >
             -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.externalIssuesReportPaths=sonar-trivy-report.json
+            -Dsonar.sarifReportPaths=trivy-report.sarif
 
   job_deploy_production:
     needs: job_trivy_sonar_prod
