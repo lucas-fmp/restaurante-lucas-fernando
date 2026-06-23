@@ -1,8 +1,8 @@
-name: integracao continua e staging
+name: CI/CD — develop | staging | main
 
 on:
   push:
-    branches: ["develop", "staging"]
+    branches: ["develop", "staging", "main"]
   pull_request:
     branches: ["develop"]
 
@@ -94,6 +94,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          package-manager-cache: false
+
+      - name: Instalar dependências (inclui devDependencies)
+        run: npm install
+
+      - name: Rodar testes com cobertura
+        run: npm run test:coverage
+
       - name: Criar sonar-project.properties dinâmico
         run: |
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
@@ -102,6 +114,7 @@ jobs:
           echo "sonar.sources=." >> sonar-project.properties
           echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
           echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
 
       - name: Exibir configuração do Sonar
         run: cat sonar-project.properties
@@ -155,6 +168,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          package-manager-cache: false
+
+      - name: Instalar dependências (inclui devDependencies)
+        run: npm install
+
+      - name: Rodar testes com cobertura
+        run: npm run test:coverage
 
       - name: Login no Docker Hub para pull
         uses: docker/login-action@v4
@@ -219,6 +244,7 @@ jobs:
           echo "sonar.sources=." >> sonar-project.properties
           echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
           echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
 
       - name: SonarQube Scan com relatório Trivy
         uses: sonarsource/sonarqube-scan-action@master
@@ -238,18 +264,35 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Preparar arquivo Compose com o identificador do aluno
+      - name: Preparar arquivo Compose para a EC2
         run: |
-          # Copia o compose original para o formato fixo
-          cp docker-compose.yml docker-compose-8089.yml
+          cat > docker-compose-8089.yml << 'EOF'
+          services:
+            app:
+              image: lucasfmp/restaurante-lucas-fernando:staging
+              container_name: restaurante-lucas-8089
+              ports:
+                - "8089:3000"
+              environment:
+                DB_HOST: mysql-infra
+                DB_PORT: 3306
+                DB_USER: root
+                DB_PASS: password
+                DB_NAME: restaurante_lucas
+              networks:
+                - rede_alunos
+          networks:
+            rede_alunos:
+              external: true
+          EOF
 
-      - name: Copiar Compose para a EC2 (via SCP)
+      - name: Copiar Compose e init.sql para a EC2 (via SCP)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "docker-compose-8089.yml"
+          source: "docker-compose-8089.yml,init.sql"
           target: "/home/${{ secrets.EC2_USER }}/deploy_8089"
 
       - name: Executar o Deploy na EC2 (via SSH)
@@ -259,8 +302,14 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            # Entra na pasta onde o arquivo foi copiado
+            # Entra na pasta onde os arquivos foram copiados
             cd /home/${{ secrets.EC2_USER }}/deploy_8089
+
+            # Executa o init.sql no container MySQL compartilhado
+            echo "⏳ Executando init.sql no container mysql-infra..."
+            sudo docker exec -i mysql-infra \
+              mysql -u root -ppassword < init.sql
+            echo "✅ init.sql executado com sucesso!"
 
             # Garante que não usará cache da imagem antiga
             sudo docker compose -f docker-compose-8089.yml pull
@@ -269,3 +318,198 @@ jobs:
             sudo docker compose -f docker-compose-8089.yml up -d
 
             echo "✅ Deploy do aluno 8089 finalizado com sucesso na EC2!"
+
+  # ==========================================
+  # PRODUÇÃO — branch main
+  # ==========================================
+
+  job_release_docker_prod:
+    needs: estagio_lint
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker.io/lucasfmp/restaurante-lucas-fernando
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build da imagem Docker
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          docker build -t $IMAGE_NAME:$VERSION .
+          docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
+
+      - name: Push da imagem para o Docker Hub
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          docker push $IMAGE_NAME:$VERSION
+          docker push $IMAGE_NAME:latest
+
+  job_trivy_sonar_prod:
+    needs: job_release_docker_prod
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker.io/lucasfmp/restaurante-lucas-fernando
+    steps:
+      - name: Checkout do código para o Sonar
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          package-manager-cache: false
+
+      - name: Instalar dependências (inclui devDependencies)
+        run: npm install
+
+      - name: Rodar testes com cobertura
+        run: npm run test:coverage
+
+      - name: Login no Docker Hub para pull
+        uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pull da imagem Docker
+        run: docker pull $IMAGE_NAME:latest
+
+      - name: Scan de segurança com Trivy
+        uses: aquasecurity/trivy-action@v0.13.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:latest
+          format: json
+          output: trivy-report.json
+
+      - name: Converter relatório Trivy para Sonar External Issues
+        run: |
+          python3 - <<'PY'
+          import json
+          severity_map = {
+              "CRITICAL": "CRITICAL",
+              "HIGH": "MAJOR",
+              "MEDIUM": "MINOR",
+              "LOW": "INFO",
+              "UNKNOWN": "INFO"
+          }
+          with open('trivy-report.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          issues = []
+          for result in data.get('Results', []):
+              target = result.get('Target', 'Docker image')
+              for vuln in result.get('Vulnerabilities', []) or []:
+                  rule_id = vuln.get('VulnerabilityID') or vuln.get('Title', 'UNKNOWN')
+                  msg = vuln.get('Title', rule_id)
+                  if vuln.get('InstalledVersion'):
+                      msg += f" (installed: {vuln.get('InstalledVersion')})"
+                  msg += f" on {target}"
+                  issues.append({
+                      'engineId': 'trivy',
+                      'ruleId': rule_id,
+                      'severity': severity_map.get(vuln.get('Severity', 'UNKNOWN'), 'INFO'),
+                      'type': 'VULNERABILITY',
+                      'primaryLocation': {
+                          'message': msg,
+                          'filePath': 'Dockerfile',
+                          'textRange': {'startLine': 1}
+                      }
+                  })
+          with open('sonar-trivy-report.json', 'w', encoding='utf-8') as f:
+              json.dump({'issues': issues}, f, indent=2)
+          print('Generated sonar-trivy-report.json with', len(issues), 'issues')
+          PY
+
+      - name: Criar sonar-project.properties dinâmico
+        run: |
+          echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
+          echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
+          echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
+          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
+          echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+          echo "sonar.javascript.lcov.reportPaths=coverage/lcov.info" >> sonar-project.properties
+
+      - name: SonarQube Scan com relatório Trivy
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.TOKEN_SONAR }}
+          SONAR_HOST_URL: "https://devsecops.dcotech.com.br"
+        with:
+          args: >
+            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.externalIssuesReportPaths=sonar-trivy-report.json
+
+  job_deploy_production:
+    needs: job_trivy_sonar_prod
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Preparar arquivo Compose para a EC2 (produção)
+        run: |
+          cat > docker-compose-8089.yml << 'EOF'
+          services:
+            app:
+              image: lucasfmp/restaurante-lucas-fernando:latest
+              container_name: restaurante-lucas-8089
+              ports:
+                - "8089:3000"
+              environment:
+                DB_HOST: mysql-infra
+                DB_PORT: 3306
+                DB_USER: root
+                DB_PASS: password
+                DB_NAME: restaurante_lucas
+              networks:
+                - rede_alunos
+          networks:
+            rede_alunos:
+              external: true
+          EOF
+
+      - name: Copiar Compose e init.sql para a EC2 (via SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "docker-compose-8089.yml,init.sql"
+          target: "/home/${{ secrets.EC2_USER }}/deploy_8089"
+
+      - name: Executar o Deploy na EC2 (via SSH)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            # Entra na pasta onde os arquivos foram copiados
+            cd /home/${{ secrets.EC2_USER }}/deploy_8089
+
+            # Executa o init.sql no container MySQL compartilhado
+            echo "⏳ Executando init.sql no container mysql-infra..."
+            sudo docker exec -i mysql-infra \
+              mysql -u root -ppassword < init.sql
+            echo "✅ init.sql executado com sucesso!"
+
+            # Garante que não usará cache da imagem antiga
+            sudo docker compose -f docker-compose-8089.yml pull
+
+            # Recria o container em background com a nova imagem
+            sudo docker compose -f docker-compose-8089.yml up -d
+
+            echo "✅ Deploy de PRODUÇÃO finalizado com sucesso na EC2!"

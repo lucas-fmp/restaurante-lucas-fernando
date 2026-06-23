@@ -4,13 +4,30 @@
   "description": "Sistema de Gestão de Marmitas - MySQL Version",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest --forceExit",
+    "test:coverage": "jest --coverage --forceExit"
   },
   "dependencies": {
-    "express": "4.16.0",
-    "mysql2": "3.9.1",
+    "body-parser": "1.18.3",
     "ejs": "3.1.6",
-    "body-parser": "1.18.3"
+    "express": "4.16.0",
+    "mysql2": "3.9.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "index.js"
+    ],
+    "coverageReporters": [
+      "lcov",
+      "text",
+      "text-summary"
+    ],
+    "coverageDirectory": "coverage"
   }
 }
-

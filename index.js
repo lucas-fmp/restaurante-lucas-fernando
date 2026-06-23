@@ -219,6 +219,12 @@ app.get('/admin/export', async (req, res) => {
     }
 });
 
-connectWithRetry().then(() => {
-    app.listen(3000, () => console.log('🚀 MARMITATECH PRO ONLINE NA PORTA 3000'));
-});
+if (require.main === module) {
+    connectWithRetry().then(() => {
+        app.listen(3000, () => console.log('🚀 MARMITATECH PRO ONLINE NA PORTA 3000'));
+    });
+} else {
+    pool = mysql.createPool(dbConfig);
+}
+
+module.exports = { app, hashPassword, verifyPassword };

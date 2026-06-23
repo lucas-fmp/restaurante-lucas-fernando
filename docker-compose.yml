@@ -21,7 +21,7 @@ services:
     build:
       context: .
       target: runtime
-    image: lucasfmp/restaurante-lucas-fernando:staging
+    image: lucasfmp/restaurante-lucas-fernando:latest
     container_name: marmitatech-app
     ports:
       - "3000:3000"
