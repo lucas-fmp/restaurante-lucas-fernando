@@ -1,3 +1,4 @@
+/* global describe, it, expect, beforeEach, beforeAll, jest */
 /**
  * Testes unitários e de integração — index.js
  * Cobre: hashPassword, verifyPassword e todas as rotas HTTP

@@ -43,7 +43,7 @@ async function connectWithRetry() {
             await pool.query('SELECT 1');
             console.log('✅ [DATABASE] Conectado ao MySQL com sucesso!');
             return;
-        } catch (err) {
+        } catch (_err) {
             console.log(`⚠️ [DATABASE] Tentativa ${i}/10 falhou. Aguardando...`);
             await new Promise(res => setTimeout(res, 3000));
         }
@@ -72,7 +72,7 @@ app.post('/login', async (req, res) => {
         const match = await verifyPassword(password, rows[0].password);
         if (match) return res.redirect('/dashboard');
         return res.redirect('/?tab=login&error=Usuário+ou+senha+inválidos');
-    } catch (err) {
+    } catch (_err) {
         res.redirect('/?tab=login&error=Erro+interno.+Tente+novamente.');
     }
 });
@@ -86,7 +86,7 @@ app.post('/register', async (req, res) => {
         const hash = await hashPassword(password);
         await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hash]);
         return res.redirect('/?tab=login&success=Conta+criada!+Agora+faça+o+login.');
-    } catch (err) {
+    } catch (_err) {
         res.redirect('/?tab=register&error=Erro+interno.+Tente+novamente.');
     }
 });
@@ -119,7 +119,7 @@ app.post('/add-item', async (req, res) => {
     try {
         await pool.query('INSERT INTO items (name, category, price) VALUES (?, ?, ?)', [name.trim(), category, priceNum]);
         res.status(201).json({ message: 'Item adicionado com sucesso.' });
-    } catch (err) {
+    } catch (_err) {
         res.status(500).json({ error: 'Erro interno. Tente novamente.' });
     }
 });
@@ -144,7 +144,7 @@ app.post('/orders', async (req, res) => {
 
         await connection.commit();
         res.status(201).json({ message: 'Pedido criado com sucesso.' });
-    } catch (err) {
+    } catch (_err) {
         await connection.rollback();
         res.status(500).json({ error: 'Erro interno. Tente novamente.' });
     } finally {
@@ -163,7 +163,7 @@ app.get('/kanban', async (req, res) => {
             ORDER BY o.id DESC
         `);
         res.render('kanban', { orders });
-    } catch (err) {
+    } catch (_err) {
         res.status(500).json({ error: 'Erro ao carregar painel Kanban.' });
     }
 });
@@ -180,7 +180,7 @@ app.put('/orders/:id/status', async (req, res) => {
     try {
         await pool.query('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
         res.status(200).json({ message: 'Pedido atualizado com sucesso.' });
-    } catch (err) {
+    } catch (_err) {
         res.status(500).json({ error: 'Erro ao atualizar pedido.' });
     }
 });
@@ -214,7 +214,7 @@ app.get('/admin/export', async (req, res) => {
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv"`);
         res.send('\ufeff' + csvContent); // BOM para UTF-8 no Excel
-    } catch (err) {
+    } catch (_err) {
         res.status(500).json({ error: 'Erro ao gerar relatório.' });
     }
 });
