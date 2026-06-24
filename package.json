@@ -13,23 +13,25 @@
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.1",
-    "body-parser": "1.18.3",
-    "ejs": "3.1.6",
-    "express": "4.16.0",
+    "body-parser": "^2.3.0",
+    "ejs": "6.0.1",
+    "express": "5.2.1",
     "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.19.0",
     "multer": "^2.2.0",
-    "mysql2": "3.9.1",
+    "mysql2": "3.22.5",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
+    "jest": "^30.4.2",
     "supertest": "^7.2.2"
   },
   "jest": {
     "testEnvironment": "node",
     "collectCoverageFrom": [
-      "index.js"
+      "index.js",
+      "routes/**/*.js",
+      "config/**/*.js"
     ],
     "coverageReporters": [
       "lcov",
