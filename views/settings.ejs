@@ -1,0 +1,37 @@
+<div class="space-y-6">
+    <div>
+        <h1 class="text-3xl font-bold mb-2">Configurações</h1>
+        <p class="text-muted-foreground">Gerencie as configurações do seu restaurante</p>
+    </div>
+
+    <div class="rounded-2xl border border-border/50 bg-card shadow p-6 max-w-2xl">
+        <h2 class="text-xl font-bold mb-4">Aparência do Sistema</h2>
+        <form action="/api/settings" method="POST" class="space-y-6">
+            <div class="flex items-center justify-between p-4 border border-border rounded-xl">
+                <div>
+                    <h3 class="font-medium">Modo Escuro</h3>
+                    <p class="text-sm text-muted-foreground">Ativar tema escuro permanentemente</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="dark_mode" class="sr-only peer" <%= user?.settings?.theme === 'dark' ? 'checked' : '' %>>
+                    <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between p-4 border border-border rounded-xl">
+                <div>
+                    <h3 class="font-medium">Notificações Sonoras</h3>
+                    <p class="text-sm text-muted-foreground">Tocar som ao receber novos pedidos</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="sound_alerts" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+
+            <button type="submit" class="bg-primary text-primary-foreground font-medium rounded-xl h-10 px-6 hover:bg-primary/90">
+                Salvar Configurações
+            </button>
+        </form>
+    </div>
+</div>

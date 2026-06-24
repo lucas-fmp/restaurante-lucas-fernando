@@ -1,0 +1,97 @@
+<div class="space-y-8">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Relatórios</h1>
+            <p class="text-muted-foreground">Análise de vendas e performance</p>
+        </div>
+        <a href="/api/export/orders" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 rounded-xl gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+        </a>
+    </div>
+
+    <!-- Filtros mock -->
+    <div class="rounded-2xl border border-border/50 bg-card p-4 shadow flex gap-4 items-center">
+        <div class="flex-1 max-w-xs">
+            <label class="text-sm font-medium mb-1 block">Período</label>
+            <select class="w-full h-10 rounded-xl border border-input bg-input-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option>Últimos 7 dias</option>
+                <option>Este Mês</option>
+                <option>Ano Atual</option>
+            </select>
+        </div>
+        <div class="pt-6">
+            <button class="bg-primary text-primary-foreground h-10 px-4 rounded-xl font-medium text-sm hover:bg-primary/90">
+                Filtrar
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="rounded-2xl border border-border/50 bg-card text-card-foreground shadow h-full flex flex-col">
+            <div class="p-6 pb-2">
+                <h3 class="font-semibold leading-none tracking-tight">Vendas por Categoria</h3>
+                <p class="text-sm text-muted-foreground mt-1">Distribuição das vendas (Mock)</p>
+            </div>
+            <div class="p-6 flex-1 flex items-center justify-center">
+                <canvas id="categoryChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-border/50 bg-card text-card-foreground shadow h-full flex flex-col">
+            <div class="p-6 pb-2">
+                <h3 class="font-semibold leading-none tracking-tight">Crescimento Mensal</h3>
+                <p class="text-sm text-muted-foreground mt-1">Comparativo de meses (Mock)</p>
+            </div>
+            <div class="p-6 flex-1 flex items-center justify-center">
+                <canvas id="growthChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Category Chart
+    const ctxCat = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+            labels: ['Marmitas', 'Bebidas', 'Sobremesas', 'Extras'],
+            datasets: [{
+                data: [45, 25, 15, 15],
+                backgroundColor: ['#F97316', '#F59E0B', '#10b981', '#3b82f6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Growth Chart
+    const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+    new Chart(ctxGrowth, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Receita',
+                data: [12000, 15000, 14000, 18000, 22000, 25000],
+                backgroundColor: '#10b981',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>

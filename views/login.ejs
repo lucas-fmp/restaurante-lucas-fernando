@@ -1,80 +1,153 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Restaurante Lucas Fernando</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-orange-50 to-amber-50 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <!-- Logo e Título -->
-            <div class="text-center mb-8">
-                <img class="w-20 h-20 mx-auto mb-4 drop-shadow" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo">
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">🍽️ MarmitaTech</h1>
-                <p class="text-gray-500">Gestão de Pedidos Inteligente</p>
+<div class="min-h-screen flex">
+    <!-- Left side - Image and stats -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-accent to-primary relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZCUyMGRlbGl2ZXJ5JTIwbWVhbCUyMHByZXB8ZW58MXx8fHwxNzgyMjU0ODQyfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="Restaurant food" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay">
+        
+        <div class="relative z-10 flex flex-col justify-between p-12 text-white w-full h-full">
+            <div>
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                        <i data-lucide="chef-hat" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">Restaurante Lucas Fernando</h1>
+                        <p class="text-sm text-white/80">Sistema de Gestão Completo</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6 max-w-md">
+                    <h2 class="text-4xl font-bold leading-tight">
+                        Gerencie seu restaurante com inteligência
+                    </h2>
+                    <p class="text-lg text-white/90">
+                        Plataforma completa para gestão de pedidos, cardápio, cozinha e relatórios analíticos.
+                    </p>
+                </div>
             </div>
 
-            <!-- Tabs -->
-            <div class="flex border-b border-gray-200 mb-8">
-                <button class="tab-btn flex-1 py-3 font-semibold text-center transition <%= tab === 'login' ? 'active text-orange-600 border-b-2 border-orange-600' : 'text-gray-500 hover:text-gray-700' %>" id="btn-login" onclick="showTab('login')">
-                    Entrar
-                </button>
-                <button class="tab-btn flex-1 py-3 font-semibold text-center transition <%= tab === 'register' ? 'active text-orange-600 border-b-2 border-orange-600' : 'text-gray-500 hover:text-gray-700' %>" id="btn-register" onclick="showTab('register')">
-                    Criar conta
-                </button>
-            </div>
-
-            <!-- Login Panel -->
-            <div class="tab-panel <%= tab === 'login' ? 'active' : 'hidden' %>" id="panel-login">
-                <% if (locals.tab === 'login' && locals.error) { %>
-                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
-                        <span>⚠️</span> <%= error %>
-                    </div>
-                <% } %>
-                <% if (locals.tab === 'login' && locals.success) { %>
-                    <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-start gap-2">
-                        <span>✅</span> <%= success %>
-                    </div>
-                <% } %>
-                <form action="/login" method="POST" class="space-y-4">
-                    <input type="text" name="username" placeholder="Usuário" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
-                    <input type="password" name="password" placeholder="Senha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
-                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition transform hover:scale-105">
-                        Entrar
-                    </button>
-                </form>
-            </div>
-
-            <!-- Register Panel -->
-            <div class="tab-panel <%= tab === 'register' ? 'active' : 'hidden' %>" id="panel-register">
-                <% if (locals.tab === 'register' && locals.error) { %>
-                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
-                        <span>⚠️</span> <%= error %>
-                    </div>
-                <% } %>
-                <form action="/register" method="POST" class="space-y-4">
-                    <input type="text" name="username" placeholder="Usuário" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    <input type="password" name="password" placeholder="Senha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition transform hover:scale-105">
-                        Criar conta
-                    </button>
-                </form>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 transition hover:-translate-y-1">
+                    <i data-lucide="shopping-bag" class="w-6 h-6 mb-2"></i>
+                    <div class="text-2xl font-bold">15K+</div>
+                    <div class="text-sm text-white/80">Pedidos/mês</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 transition hover:-translate-y-1">
+                    <i data-lucide="users" class="w-6 h-6 mb-2"></i>
+                    <div class="text-2xl font-bold">8K+</div>
+                    <div class="text-sm text-white/80">Clientes</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 transition hover:-translate-y-1">
+                    <i data-lucide="trending-up" class="w-6 h-6 mb-2"></i>
+                    <div class="text-2xl font-bold">98%</div>
+                    <div class="text-sm text-white/80">Satisfação</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        function showTab(tab) {
-            const loginPanel = document.getElementById('panel-login');
-            const registerPanel = document.getElementById('panel-register');
-            loginPanel.classList.toggle('hidden', tab !== 'login');
-            registerPanel.classList.toggle('hidden', tab !== 'register');
-        }
-        // Abre a aba correta com base no query param ?tab=
-        const params = new URLSearchParams(window.location.search);
-        showTab(params.get('tab') || 'login');
-    </script>
-</body>
-</html>
-</body>
-</html>
+    <!-- Right side - Forms -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
+        <div class="w-full max-w-md space-y-8">
+            <div class="text-center lg:text-left">
+                <div class="lg:hidden flex items-center justify-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="chef-hat" class="w-7 h-7 text-primary"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold">Restaurante Lucas Fernando</h1>
+                </div>
+                
+                <% if(tab === 'login') { %>
+                    <h2 class="text-3xl font-bold mb-2">Bem-vindo de volta!</h2>
+                    <p class="text-muted-foreground">Faça login para acessar sua conta</p>
+                <% } else { %>
+                    <h2 class="text-3xl font-bold mb-2">Crie sua conta</h2>
+                    <p class="text-muted-foreground">Comece a gerenciar seu restaurante agora</p>
+                <% } %>
+            </div>
+
+            <% if (error) { %>
+                <div class="bg-destructive/10 text-destructive text-sm font-medium px-4 py-3 rounded-xl border border-destructive/20 flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <% if (success) { %>
+                <div class="bg-success/10 text-success text-sm font-medium px-4 py-3 rounded-xl border border-success/20 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <%= success %>
+                </div>
+            <% } %>
+
+            <% if(tab === 'login') { %>
+            <!-- Login Form -->
+            <form action="/api/login" method="POST" class="space-y-6">
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="username" class="text-sm font-medium">Usuário</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></i>
+                            <input id="username" name="username" type="text" placeholder="Seu usuário" class="w-full pl-10 h-12 rounded-xl border border-input bg-input-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="password" class="text-sm font-medium">Senha</label>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></i>
+                            <input id="password" name="password" type="password" placeholder="••••••••" class="w-full pl-10 h-12 rounded-xl border border-input bg-input-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full h-12 rounded-xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition">
+                    Entrar
+                </button>
+            </form>
+            <p class="text-center text-sm text-muted-foreground mt-6">
+                Não tem uma conta? <a href="/?tab=register" class="text-primary font-medium hover:underline">Criar conta</a>
+            </p>
+            <% } else { %>
+            <!-- Register Form -->
+            <form action="/api/register" method="POST" class="space-y-6">
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="full_name" class="text-sm font-medium">Nome Completo</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></i>
+                            <input id="full_name" name="full_name" type="text" placeholder="Seu nome" class="w-full pl-10 h-12 rounded-xl border border-input bg-input-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="username" class="text-sm font-medium">Usuário</label>
+                        <div class="relative">
+                            <i data-lucide="at-sign" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></i>
+                            <input id="username" name="username" type="text" placeholder="Escolha um nome de usuário" class="w-full pl-10 h-12 rounded-xl border border-input bg-input-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="password" class="text-sm font-medium">Senha</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></i>
+                            <input id="password" name="password" type="password" placeholder="••••••••" class="w-full pl-10 h-12 rounded-xl border border-input bg-input-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full h-12 rounded-xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition">
+                    Criar Conta
+                </button>
+            </form>
+            <p class="text-center text-sm text-muted-foreground mt-6">
+                Já possui uma conta? <a href="/?tab=login" class="text-primary font-medium hover:underline">Fazer login</a>
+            </p>
+            <% } %>
+
+        </div>
+    </div>
+</div>

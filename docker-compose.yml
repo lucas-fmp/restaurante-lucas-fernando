@@ -1,4 +1,22 @@
 services:
+  db:
+    image: mysql:8.0
+    container_name: marmitatech-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: marmitadb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   app:
     build:
       context: .
@@ -6,13 +24,18 @@ services:
     image: lucasfmp/restaurante-lucas-fernando:latest
     container_name: marmitatech-app
     ports:
-      - "8089:3000"
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
-      DB_HOST: 54.89.88.5
-      DB_USER: root
+      DB_HOST: db
+      DB_USER: user
       DB_PASS: password
-      DB_NAME: lfdb
-
-networks:
-  rede_alunos:
-    external: true
+      DB_NAME: marmitadb
+      DB_PORT: 3306
+    depends_on:
+      db:
+        condition: service_healthy

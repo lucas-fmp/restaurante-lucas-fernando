@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="<%= user?.settings?.theme === 'dark' ? 'dark' : '' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante Lucas Fernando</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-background text-foreground antialiased min-h-screen">
+    
+    <div class="min-h-screen bg-background flex">
+        <%- include('../partials/sidebar') %>
+
+        <div class="flex-1 flex flex-col transition-all duration-300 lg:ml-72" id="main-content">
+            <%- include('../partials/topbar') %>
+
+            <main class="flex-1 p-4 lg:p-8">
+                <%- body %>
+            </main>
+        </div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm hidden lg:hidden"></div>
+
+    <script>
+        lucide.createIcons();
+
+        // Mobile menu toggle logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.remove('-translate-x-full');
+            document.getElementById('mobile-overlay')?.classList.remove('hidden');
+        });
+        document.getElementById('close-sidebar-btn')?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay')?.classList.add('hidden');
+        });
+        document.getElementById('mobile-overlay')?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay')?.classList.add('hidden');
+        });
+
+        // Global Toast Function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground';
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            
+            toast.className = `flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 transform translate-y-full opacity-0 ${bgColor}`;
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i><span class="text-sm font-medium">${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-full', 'opacity-0');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Check URL params for success/error messages
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if(params.has('successMsg')) {
+                showToast(params.get('successMsg'), 'success');
+                // clear URL without reloading
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            if(params.has('errorMsg')) {
+                showToast(params.get('errorMsg'), 'error');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+</body>
+</html>
