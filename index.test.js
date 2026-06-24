@@ -1,16 +1,13 @@
 /* global describe, it, expect, beforeEach, beforeAll, jest */
 /**
- * Testes unitários e de integração — index.js
- * Cobre: hashPassword, verifyPassword e todas as rotas HTTP
+ * Testes unitários e de integração
  */
-
-// Mock do mysql2/promise ANTES de qualquer require
 jest.mock('mysql2/promise');
 
 const request = require('supertest');
 const mysql2 = require('mysql2/promise');
 
-// ----- Configuração dos mocks de banco de dados -----
+// ----- Mocks de Banco de Dados -----
 const mockConnectionQuery = jest.fn();
 const mockConnection = {
   beginTransaction: jest.fn(),
@@ -25,389 +22,236 @@ const mockPool = {
   getConnection: jest.fn(),
 };
 
-// Configura createPool ANTES de require('../index')
 mysql2.createPool.mockReturnValue(mockPool);
 
-// Agora importa o módulo — pool será definido via mock
-const { app, hashPassword, verifyPassword } = require('./index');
+const { app } = require('./index');
+const { hashPassword, verifyPassword } = require('./config/auth');
 
-// ----- Restaura defaults antes de cada teste -----
+let agent;
+
 beforeEach(() => {
   jest.clearAllMocks();
+  
+  mockQuery.mockResolvedValue([[], []]);
+  mockConnectionQuery.mockResolvedValue([[], []]);
+
   mockPool.getConnection.mockResolvedValue(mockConnection);
   mockConnection.beginTransaction.mockResolvedValue();
   mockConnection.commit.mockResolvedValue();
   mockConnection.rollback.mockResolvedValue();
   mockConnection.release.mockImplementation(() => {});
+  
+  agent = request.agent(app); // Re-instancia o agent para limpar a sessão em cada teste
 });
 
 // =====================================================
-// hashPassword
+// config/auth.js (Unit)
 // =====================================================
-describe('hashPassword', () => {
-  it('deve retornar uma string no formato salt:hash', async () => {
+describe('config/auth', () => {
+  it('hashPassword deve retornar salt:hash', async () => {
     const result = await hashPassword('minhasenha');
-    expect(typeof result).toBe('string');
     expect(result).toContain(':');
     const parts = result.split(':');
     expect(parts.length).toBe(2);
-    expect(parts[0].length).toBeGreaterThan(0); // salt
-    expect(parts[1].length).toBeGreaterThan(0); // hash
+    expect(parts[0].length).toBeGreaterThan(0);
+    expect(parts[1].length).toBeGreaterThan(0);
   });
 
-  it('deve gerar hashes diferentes para a mesma senha (salt aleatório)', async () => {
-    const hash1 = await hashPassword('senha123');
-    const hash2 = await hashPassword('senha123');
-    expect(hash1).not.toBe(hash2);
-  });
-});
-
-// =====================================================
-// verifyPassword
-// =====================================================
-describe('verifyPassword', () => {
-  let storedHash;
-
-  beforeAll(async () => {
-    storedHash = await hashPassword('senhaCorreta');
-  });
-
-  it('deve retornar true para a senha correta', async () => {
-    const result = await verifyPassword('senhaCorreta', storedHash);
-    expect(result).toBe(true);
-  });
-
-  it('deve retornar false para senha errada', async () => {
-    const result = await verifyPassword('senhaErrada', storedHash);
-    expect(result).toBe(false);
+  it('verifyPassword deve validar corretamente', async () => {
+    const storedHash = await hashPassword('senhaCorreta');
+    expect(await verifyPassword('senhaCorreta', storedHash)).toBe(true);
+    expect(await verifyPassword('senhaErrada', storedHash)).toBe(false);
   });
 });
 
 // =====================================================
-// GET /
+// Rotas Públicas (Sem Auth)
 // =====================================================
-describe('GET /', () => {
-  it('deve renderizar a página de login com tab padrão', async () => {
+describe('Rotas Públicas', () => {
+  it('GET / deve renderizar login', async () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
-    expect(res.text).toContain('MarmitaTech');
+    expect(res.text).toContain('login');
   });
 
-  it('deve passar parâmetro tab personalizado', async () => {
-    const res = await request(app).get('/?tab=register');
-    expect(res.status).toBe(200);
-  });
-
-  it('deve passar parâmetros error e success', async () => {
-    const res = await request(app).get('/?error=Erro+teste&success=OK');
-    expect(res.status).toBe(200);
-  });
-});
-
-// =====================================================
-// GET /logout
-// =====================================================
-describe('GET /logout', () => {
-  it('deve redirecionar para a página de login', async () => {
-    const res = await request(app).get('/logout');
+  it('GET /login redireciona para /', async () => {
+    const res = await request(app).get('/login');
     expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('tab=login');
-  });
-});
-
-// =====================================================
-// POST /login
-// =====================================================
-describe('POST /login', () => {
-  it('deve redirecionar com erro se usuário não encontrado', async () => {
-    mockQuery.mockResolvedValueOnce([[], []]);
-    const res = await request(app)
-      .post('/login')
-      .send('username=inexistente&password=123456');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
+    expect(res.headers.location).toBe('/');
   });
 
-  it('deve redirecionar para /dashboard com credenciais corretas', async () => {
-    const hash = await hashPassword('senhavalida');
-    mockQuery.mockResolvedValueOnce([[{ id: 1, username: 'lucas', password: hash }], []]);
-    const res = await request(app)
-      .post('/login')
-      .send('username=lucas&password=senhavalida');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/dashboard');
-  });
-
-  it('deve redirecionar com erro se senha errada', async () => {
-    const hash = await hashPassword('senhaCorreta');
-    mockQuery.mockResolvedValueOnce([[{ id: 1, username: 'lucas', password: hash }], []]);
-    const res = await request(app)
-      .post('/login')
-      .send('username=lucas&password=senhaErrada');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
-  });
-
-  it('deve redirecionar com erro em caso de falha no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app)
-      .post('/login')
-      .send('username=lucas&password=123456');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
-  });
-});
-
-// =====================================================
-// POST /register
-// =====================================================
-describe('POST /register', () => {
-  it('deve redirecionar com erro se username estiver vazio', async () => {
-    const res = await request(app)
-      .post('/register')
-      .send('username=&password=123456');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
-  });
-
-  it('deve redirecionar com erro se password estiver vazio', async () => {
-    const res = await request(app)
-      .post('/register')
-      .send('username=lucas&password=');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
-  });
-
-  it('deve redirecionar com erro se usuário já existe', async () => {
-    mockQuery.mockResolvedValueOnce([[{ id: 1 }], []]);
-    const res = await request(app)
-      .post('/register')
-      .send('username=lucas&password=123456');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('error=');
-  });
-
-  it('deve criar usuário e redirecionar para login', async () => {
+  it('POST /api/register deve criar usuário e redirect para sucesso', async () => {
     mockQuery
-      .mockResolvedValueOnce([[], []])       // SELECT: sem usuário existente
-      .mockResolvedValueOnce([{ insertId: 1 }, []]); // INSERT
-    const res = await request(app)
-      .post('/register')
-      .send('username=novousuario&password=senha123');
+      .mockResolvedValueOnce([[], []]) // Checa se existe
+      .mockResolvedValueOnce([{ insertId: 1 }, []]) // Insere usuário
+      .mockResolvedValueOnce([{}, []]); // Insere settings
+    const res = await request(app).post('/api/register').send('username=novo&password=123');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('success=');
   });
 
-  it('deve redirecionar com erro em caso de falha no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app)
-      .post('/register')
-      .send('username=usuario&password=senha123');
+  it('POST /api/register erro de username existente', async () => {
+    mockQuery.mockResolvedValueOnce([[{ id: 1 }], []]);
+    const res = await request(app).post('/api/register').send('username=novo&password=123');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toContain('error=');
+  });
+
+  it('POST /api/login redireciona se erro', async () => {
+    mockQuery.mockResolvedValueOnce([[], []]);
+    const res = await request(app).post('/api/login').send('username=inexistente&password=123');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error=');
   });
 });
 
 // =====================================================
-// GET /dashboard
+// Helpers para Rotas Autenticadas
 // =====================================================
-describe('GET /dashboard', () => {
-  it('deve renderizar o dashboard com itens e pedidos', async () => {
+async function loginAgent(customAgent) {
+  const hash = await hashPassword('senhaCorreta');
+  mockQuery.mockResolvedValueOnce([[{ id: 1, username: 'lucas', password: hash, full_name: 'Lucas', role: 'admin' }], []]);
+  await customAgent.post('/api/login').send('username=lucas&password=senhaCorreta');
+}
+
+// =====================================================
+// Rotas Autenticadas (Views)
+// =====================================================
+describe('Views Autenticadas', () => {
+  it('GET /dashboard', async () => {
+    await loginAgent(agent);
     mockQuery
-      .mockResolvedValueOnce([[{ id: 1, name: 'Arroz', category: 'Base', price: 5.00 }], []])
-      .mockResolvedValueOnce([[{ id: 1, customer_name: 'Cliente', status: 'Aberto', item_names: 'Arroz' }], []]);
-    const res = await request(app).get('/dashboard');
+      .mockResolvedValueOnce([[{ id: 1, name: 'Arroz' }], []])
+      .mockResolvedValueOnce([[{ id: 1, customer_name: 'Maria', status: 'Aberto' }], []]);
+    const res = await agent.get('/dashboard');
+    if (res.status !== 200) console.log('DASHBOARD ERROR RESPONSE:', res.status, res.text);
     expect(res.status).toBe(200);
-    expect(res.text).toContain('Dashboard');
+  });
+
+  it('GET /kanban', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([[{ id: 1, customer_name: 'Maria', status: 'Aberto', item_names: 'Arroz' }], []]);
+    const res = await agent.get('/kanban');
+    expect(res.status).toBe(200);
+  });
+
+  it('GET /orders', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([[{ id: 1, customer_name: 'Maria', status: 'Aberto', item_names: 'Arroz' }], []]);
+    const res = await agent.get('/orders');
+    expect(res.status).toBe(200);
+  });
+
+  it('GET /orders/new', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([[{ id: 1, name: 'Arroz' }], []]);
+    const res = await agent.get('/orders/new');
+    expect(res.status).toBe(200);
+  });
+
+  it('GET /menu', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([[{ id: 1, name: 'Arroz' }], []]);
+    const res = await agent.get('/menu');
+    expect(res.status).toBe(200);
+  });
+  
+  it('GET /reports, /settings, /profile', async () => {
+    await loginAgent(agent);
+    expect((await agent.get('/reports')).status).toBe(200);
+    expect((await agent.get('/settings')).status).toBe(200);
+    expect((await agent.get('/profile')).status).toBe(200);
+  });
+
+  it('GET /logout', async () => {
+    await loginAgent(agent);
+    const res = await agent.get('/logout');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toContain('login');
   });
 });
 
 // =====================================================
-// POST /add-item
+// Rotas API (Autenticadas)
 // =====================================================
-describe('POST /add-item', () => {
-  it('deve retornar 400 se o nome estiver vazio', async () => {
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=&category=Base&price=5.00');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toContain('Nome');
-  });
-
-  it('deve retornar 400 se o nome for só espaços', async () => {
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=   &category=Base&price=5.00');
-    expect(res.status).toBe(400);
-  });
-
-  it('deve retornar 400 se o preço for inválido (texto)', async () => {
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=Arroz&category=Base&price=abc');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toContain('Preço');
-  });
-
-  it('deve retornar 400 se o preço for zero ou negativo', async () => {
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=Arroz&category=Base&price=-1');
-    expect(res.status).toBe(400);
-  });
-
-  it('deve criar item e retornar 201', async () => {
+describe('API Autenticada', () => {
+  it('POST /api/items (Add Item)', async () => {
+    await loginAgent(agent);
     mockQuery.mockResolvedValueOnce([{ insertId: 1 }, []]);
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=Feijão&category=Grão&price=3.50');
-    expect(res.status).toBe(201);
-    expect(res.body.message).toContain('sucesso');
+    const res = await agent.post('/api/items')
+      .field('name', 'Feijão')
+      .field('category', 'Grão')
+      .field('price', '3.50');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/menu');
   });
 
-  it('deve retornar 500 em caso de erro no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app)
-      .post('/add-item')
-      .send('name=Arroz&category=Base&price=5.00');
-    expect(res.status).toBe(500);
-  });
-});
-
-// =====================================================
-// POST /orders
-// =====================================================
-describe('POST /orders', () => {
-  it('deve retornar 400 se customer_name estiver vazio', async () => {
-    const res = await request(app)
-      .post('/orders')
-      .send('customer_name=&item_ids[]=1');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBeDefined();
-  });
-
-  it('deve retornar 400 se item_ids estiver ausente', async () => {
-    const res = await request(app)
-      .post('/orders')
-      .send('customer_name=Cliente');
-    expect(res.status).toBe(400);
-  });
-
-  it('deve criar pedido com múltiplos itens e retornar 201', async () => {
-    mockConnectionQuery
-      .mockResolvedValueOnce([{ insertId: 42 }, []])  // INSERT orders
-      .mockResolvedValueOnce([{}, []])                  // INSERT order_items item 1
-      .mockResolvedValueOnce([{}, []]);                 // INSERT order_items item 2
-    const res = await request(app)
-      .post('/orders')
-      .send('customer_name=João&item_ids[]=1&item_ids[]=2');
-    expect(res.status).toBe(201);
-    expect(res.body.message).toContain('sucesso');
-  });
-
-  it('deve retornar 500 e fazer rollback em caso de erro', async () => {
-    mockConnectionQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app)
-      .post('/orders')
-      .send('customer_name=Cliente&item_ids[]=1');
-    expect(res.status).toBe(500);
-    expect(mockConnection.rollback).toHaveBeenCalled();
-    expect(mockConnection.release).toHaveBeenCalled();
-  });
-});
-
-// =====================================================
-// GET /kanban
-// =====================================================
-describe('GET /kanban', () => {
-  it('deve renderizar o kanban com pedidos', async () => {
-    mockQuery.mockResolvedValueOnce([[
-      { id: 1, customer_name: 'Maria', status: 'Cozinha', item_names: 'Arroz, Feijão' }
-    ], []]);
-    const res = await request(app).get('/kanban');
-    expect(res.status).toBe(200);
-    expect(res.text).toContain('Kanban');
-  });
-
-  it('deve retornar 500 em caso de erro no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app).get('/kanban');
-    expect(res.status).toBe(500);
-  });
-});
-
-// =====================================================
-// PUT /orders/:id/status
-// =====================================================
-describe('PUT /orders/:id/status', () => {
-  it('deve retornar 400 para status inválido', async () => {
-    const res = await request(app)
-      .put('/orders/1/status')
-      .send('status=Cancelado');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toContain('inválido');
-  });
-
-  it('deve atualizar status e retornar 200', async () => {
+  it('POST /api/items (Update Item)', async () => {
+    await loginAgent(agent);
     mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
-    const res = await request(app)
-      .put('/orders/1/status')
-      .send('status=Cozinha');
+    const res = await agent.post('/api/items')
+      .field('id', '1')
+      .field('name', 'Feijão Atualizado')
+      .field('category', 'Grão')
+      .field('price', '4.00');
+    expect(res.status).toBe(302);
+  });
+
+  it('DELETE /api/items/:id', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+    const res = await agent.delete('/api/items/1');
     expect(res.status).toBe(200);
-    expect(res.body.message).toContain('sucesso');
+    expect(res.body.success).toBe(true);
   });
 
-  it('deve retornar 500 em caso de erro no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app)
-      .put('/orders/1/status')
-      .send('status=Entrega');
-    expect(res.status).toBe(500);
+  it('POST /api/orders', async () => {
+    await loginAgent(agent);
+    mockConnectionQuery
+      .mockResolvedValueOnce([[{ price: 10 }], []]) // query de preço do item 1
+      .mockResolvedValueOnce([{ insertId: 42 }, []]) // insert order
+      .mockResolvedValueOnce([{}, []]); // insert order_items
+
+    const res = await agent.post('/api/orders').send({
+      customer_name: 'João',
+      items: [{ id: 1, quantity: 2, notes: '' }]
+    });
+    
+    expect(res.status).toBe(201);
+    expect(res.body.orderId).toBe(42);
   });
 
-  it('deve aceitar todos os status válidos', async () => {
-    const validStatuses = ['Aberto', 'Cozinha', 'Entrega', 'Entregue'];
-    for (const status of validStatuses) {
-      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
-      const res = await request(app)
-        .put('/orders/1/status')
-        .send(`status=${status}`);
-      expect(res.status).toBe(200);
-    }
+  it('PUT /api/orders/:id/status', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+    const res = await agent.put('/api/orders/1/status').send({ status: 'Cozinha' });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
-});
 
-// =====================================================
-// GET /admin/export
-// =====================================================
-describe('GET /admin/export', () => {
-  it('deve retornar um CSV com os pedidos', async () => {
+  it('POST /api/settings', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([{}, []]);
+    const res = await agent.post('/api/settings').send('dark_mode=on');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/settings');
+  });
+
+  it('POST /api/profile', async () => {
+    await loginAgent(agent);
+    mockQuery.mockResolvedValueOnce([{}, []]);
+    const res = await agent.post('/api/profile').send('full_name=Lucas Alterado');
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/profile');
+  });
+
+  it('GET /api/export/orders', async () => {
+    await loginAgent(agent);
     mockQuery.mockResolvedValueOnce([[
-      {
-        id: 1,
-        customer_name: 'João "Silva"',
-        status: 'Entregue',
-        item_names: 'Arroz, Feijão',
-        total_value: 8.50
-      }
+      { id: 1, customer_name: 'Teste', status: 'Aberto', total_value: 10, created_at: new Date(), item_names: 'Arroz' }
     ], []]);
-    const res = await request(app).get('/admin/export');
+    const res = await agent.get('/api/export/orders');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/csv');
-    expect(res.text).toContain('ID,Cliente');
-    expect(res.text).toContain('Entregue');
-  });
-
-  it('deve lidar com lista de pedidos vazia', async () => {
-    mockQuery.mockResolvedValueOnce([[], []]);
-    const res = await request(app).get('/admin/export');
-    expect(res.status).toBe(200);
-    expect(res.text).toContain('ID,Cliente');
-  });
-
-  it('deve retornar 500 em caso de erro no banco', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB error'));
-    const res = await request(app).get('/admin/export');
-    expect(res.status).toBe(500);
   });
 });

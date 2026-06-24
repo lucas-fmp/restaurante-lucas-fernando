@@ -33,6 +33,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
         `);
         res.render('dashboard', { items, orders });
     } catch (err) {
+        console.error('DASHBOARD ERROR:', err);
         res.status(500).send('Erro ao carregar dashboard');
     }
 });
@@ -50,6 +51,7 @@ router.get('/kanban', requireAuth, async (req, res) => {
         `);
         res.render('kanban', { orders });
     } catch (err) {
+        console.error('KANBAN ERROR:', err);
         res.status(500).send('Erro ao carregar painel Kanban');
     }
 });
@@ -67,6 +69,7 @@ router.get('/orders', requireAuth, async (req, res) => {
         `);
         res.render('orders', { orders });
     } catch (err) {
+        console.error('ORDERS ERROR:', err);
         res.status(500).send('Erro ao carregar pedidos');
     }
 });
@@ -89,21 +92,6 @@ router.get('/menu', requireAuth, async (req, res) => {
     }
 });
 
-router.get('/kanban', requireAuth, async (req, res) => {
-    try {
-        const [orders] = await pool.query(`
-            SELECT o.id, o.customer_name, o.status, o.total_value, o.created_at, GROUP_CONCAT(CONCAT(oi.quantity, 'x ', i.name) SEPARATOR ', ') AS item_names
-            FROM orders o
-            LEFT JOIN order_items oi ON o.id = oi.order_id
-            LEFT JOIN items i ON oi.item_id = i.id
-            GROUP BY o.id
-            ORDER BY o.id DESC
-        `);
-        res.render('kanban', { orders });
-    } catch (err) {
-        res.status(500).send('Erro ao carregar kanban');
-    }
-});
 
 router.get('/reports', requireAuth, (req, res) => res.render('reports'));
 router.get('/settings', requireAuth, (req, res) => res.render('settings'));
