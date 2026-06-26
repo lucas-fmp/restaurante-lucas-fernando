@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS marmitadb;
-USE marmitadb;
+CREATE DATABASE IF NOT EXISTS restaurante_lucas;
+USE restaurante_lucas;
 
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS user_settings;

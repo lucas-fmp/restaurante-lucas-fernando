@@ -4,7 +4,7 @@ const dbConfig = {
     host: process.env.DB_HOST || 'db',
     user: process.env.DB_USER || 'user',
     password: process.env.DB_PASS || 'password',
-    database: process.env.DB_NAME || 'marmitadb'
+    database: process.env.DB_NAME || 'restaurante_lucas'
 };
 
 const pool = mysql.createPool(dbConfig);
