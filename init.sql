@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS marmitadb;
 USE marmitadb;
 
 DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS items;
 DROP TABLE IF EXISTS users;
