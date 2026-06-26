@@ -93,6 +93,7 @@ jobs:
 
   job_sonar:
     needs: estagio_lint
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
 
     steps:
